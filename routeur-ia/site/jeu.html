@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ma chambre · Jarvis</title>
+<meta name="description" content="Le jeu de Jarvis : ta chambre en pixel art, et sur l'ordinateur, le village où t'attendent tes tâches du jour.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8' shape-rendering='crispEdges'%3E%3Crect width='8' height='8' fill='%23e9c89b'/%3E%3Crect x='1' y='1' width='6' height='3' fill='%2391c9ec'/%3E%3Crect x='1' y='5' width='6' height='2' fill='%238b5a2b'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="lib/fonts/fonts.css">
+<link rel="stylesheet" href="app.css">
+<style>
+/* Tout le jeu est rangé sous .jeu : les fenêtres partagées du site (offre, brouillon) gardent leur style clair. */
+body{background:#2b2118}
+.jeu{--j-bord:#120d09;--j-txt:#fdf6e3;--j-mut:#d9c7aa;--j-or:#ffd34d;--j-creme:#fdf6e3;--j-encre:#2a1a0c;
+  color:var(--j-txt);font-family:'Inter',system-ui,sans-serif;padding-top:var(--nav)}
+.jeu .haut{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;padding:12px 28px;background:#1e1711;border-bottom:4px solid var(--j-bord)}
+.jeu .haut h1{font-family:'JetBrains Mono',monospace;font-size:19px;font-weight:700;letter-spacing:.02em;text-transform:uppercase}
+.jeu .niv{display:flex;align-items:center;gap:12px;font-size:14px;color:var(--j-mut);flex-wrap:wrap}
+.jeu .niv b{color:var(--j-txt)}
+.jeu .xp{width:140px;height:12px;background:var(--j-bord);border:2px solid #6e5236;display:inline-block}
+.jeu .xp i{display:block;height:100%;width:0;background:var(--j-or);transition:width .6s var(--ease)}
+.jeu .hors{margin:14px 28px 0;color:var(--txt)}
+.jeu main{display:flex;justify-content:center;align-items:flex-start;padding:8px 10px 10px}
+/* La grande fenêtre d'une zone (par-dessus la chambre, ✕ ou Échap pour fermer) */
+dialog.fen.geant{max-width:min(1200px,96vw)}
+.fen.geant .boite{min-height:min(80vh,900px)}
+.cartes-zone{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.carte-zone{background:var(--blanc);border:1px solid var(--line);border-radius:var(--r2);box-shadow:var(--sh);padding:16px;display:flex;flex-direction:column;gap:8px}
+.carte-zone b{font-size:16px;line-height:1.35}
+.carte-zone p{color:var(--mut);font-size:14.5px;line-height:1.5}
+.carte-zone .actions{margin-top:auto}
+.carte-zone pre{white-space:pre-wrap;font-family:'JetBrains Mono',monospace;font-size:12px;max-height:200px;overflow:auto;background:var(--surf);padding:8px;border-radius:8px}
+.scene{position:relative;border:6px solid var(--j-bord);overflow:hidden;background:#000;align-self:start}
+canvas#c{display:block;width:100%;height:auto;image-rendering:pixelated;image-rendering:crisp-edges}
+canvas#c.main{cursor:pointer}
+.bulle{position:absolute;width:max-content;max-width:min(220px,60%);padding:6px 10px;background:var(--j-creme);color:var(--j-encre);border:3px solid var(--j-bord);
+  font-size:13px;font-weight:700;line-height:1.3;transform:translate(-50%,-100%);pointer-events:none;opacity:0;transition:opacity .25s}
+.bulle.vu{opacity:1}
+.etiquette{position:absolute;left:10px;bottom:10px;font-size:14px;font-weight:600;color:#fff;background:rgba(18,13,9,.8);padding:4px 9px;pointer-events:none;opacity:0;transition:opacity .2s}
+.etiquette.vu{opacity:1}
+.pastille-objet{position:absolute;min-width:24px;height:24px;padding:0 6px;background:#e04848;color:#fff;border:3px solid var(--j-bord);font:800 13px Inter,sans-serif;display:grid;place-items:center;pointer-events:none}
+.notifs{position:absolute;top:10px;right:10px;z-index:3;display:flex;flex-direction:column;gap:6px;max-width:min(300px,45%)}
+.notifs button{display:block;text-align:left;padding:6px 10px;background:var(--j-creme);color:var(--j-encre);border:3px solid var(--j-bord);font:600 13px Inter,sans-serif;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.notifs button b{font-weight:800}.notifs button:hover,.notifs button:focus-visible{background:#fff}
+.charge{position:absolute;inset:0;display:grid;place-items:center;background:rgba(29,23,20,.6);font-size:15px;color:var(--j-mut)}
+
+/* L'ordinateur allumé : le village */
+.zone .noms{display:flex;flex-direction:column;gap:2px;font:600 12px Inter,sans-serif;text-align:left;opacity:.9}.zone .noms span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.carte-zone{position:relative}.carte-zone .fermer-x{position:absolute;top:6px;right:6px;min-width:32px;min-height:32px;padding:0 8px}
+.ordi{position:absolute;inset:10px;background:var(--j-bord);border:6px solid var(--j-bord);display:flex;flex-direction:column;z-index:5;
+  opacity:0;transform:scale(.96);pointer-events:none;transition:opacity .3s var(--ease),transform .3s var(--ease),visibility 0s .3s;visibility:hidden}
+.ordi.vu{opacity:1;transform:none;pointer-events:auto;visibility:visible;transition-delay:0s}
+.ordi .barre-ordi{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;background:#1d2b3a;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;color:#9fe0b0}
+.ordi .barre-ordi button{min-height:34px;padding:0 12px;background:var(--j-creme);color:var(--j-bord);border:3px solid var(--j-bord);font-weight:700;font-size:13px}
+.ordi .corps{flex:1;min-height:0;display:flex;gap:12px;padding:12px;background:#1f2a1c}
+.village{flex:1;min-width:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:1fr;gap:12px;padding:12px;background:#5c8a3e;border:4px solid #0e150d;box-shadow:inset 0 0 0 4px #77a650}
+.zone{position:relative;min-height:0;background:var(--c);border:4px solid #0e150d;color:#1d140a;text-align:left;padding:10px;display:flex;flex-direction:column;gap:6px}
+.zone:hover{filter:brightness(1.06)}
+.zone[aria-pressed=true]{outline:4px dashed #fff;outline-offset:3px}
+.zone .nom{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.02em}
+.zone .bas{display:flex;align-items:flex-end;gap:8px;flex:1;min-height:0}
+.zone .perso{flex:none;width:24px;height:38px;background:var(--p);border:3px solid #0e150d;border-top:13px solid #f0c8a0;animation:bob 1.7s ease-in-out infinite}
+.zone:nth-child(even) .perso{animation-duration:1.9s;animation-delay:.4s}
+.zone .dit{font-size:12.5px;font-weight:600;background:#fff;color:#222;border:2px solid #0e150d;padding:3px 7px;border-radius:6px;max-width:100%}
+.zone .n{position:absolute;top:-11px;right:-11px;background:#e04848;color:#fff;border:3px solid #0e150d;padding:0 8px;font-weight:800;font-size:13px}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.panneau{width:290px;flex:none;background:var(--j-creme);color:var(--j-encre);border:4px solid #0e150d;padding:12px;display:flex;flex-direction:column;gap:10px;overflow:auto}
+.panneau h2{font-family:'JetBrains Mono',monospace;font-size:15px;text-transform:uppercase}
+.panneau .note{font-size:13px;color:#6b5a44}
+.panneau .note a{color:#9a4b1c}
+.tache-v{background:#fff;border:3px solid #0e150d;padding:10px;display:flex;flex-direction:column;gap:6px}
+.tache-v b{font-size:14.5px;overflow-wrap:anywhere}
+.tache-v span{font-size:13.5px;color:#4a3a28}
+.tache-v .deux{display:flex;gap:6px}
+.tache-v .deux button{flex:1;min-height:42px;border:3px solid #0e150d;font-weight:800;font-size:14px;color:#1d140a;background:#fff}
+.tache-v .deux .ok{background:#5c8a3e;color:#fff}
+.tache-v .non{align-self:flex-start;font-size:12.5px;color:#7a6650;text-decoration:underline;cursor:pointer}
+.tache-v pre{white-space:pre-wrap;font-family:'JetBrains Mono',monospace;font-size:11.5px;max-height:160px;overflow:auto;background:#f6efe0;padding:6px}
+
+/* À droite : maintenant */
+.cote-jeu{display:flex;flex-direction:column;gap:14px}
+.bloc{background:#3a2b20;border:4px solid var(--j-bord);padding:14px}
+.bloc h2{font-family:'JetBrains Mono',monospace;font-size:15px;text-transform:uppercase;margin-bottom:8px}
+.t-jeu{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;padding:8px 6px;color:var(--j-txt)}
+.t-jeu:hover{background:#4a3829}
+.t-jeu i{flex:none;width:10px;height:10px;margin-top:6px;background:#e04848;border:2px solid var(--j-bord)}
+.t-jeu span{font-size:14px}
+.t-jeu small{display:block;color:var(--j-mut);font-size:12px}
+.vide-j,.aide{color:var(--j-mut);font-size:13.5px}
+.aide+.aide{margin-top:8px}
+
+@media (max-width:1000px){.jeu main{grid-template-columns:1fr;padding:12px}.jeu .haut{padding:10px 14px}
+  .ordi{position:fixed;inset:var(--nav) 0 0 0;border-width:0}.ordi .corps{flex-direction:column;overflow:auto}.village{flex:none;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:auto}
+  .zone{min-height:120px}.panneau{width:auto;overflow:visible}}
+@media (prefers-reduced-motion:reduce){.zone .perso{animation:none}.ordi{transition:none}}
+</style>
+</head>
+<body data-ecran="jeu">
+<div class="jeu">
+<header class="haut">
+  <h1>Ma chambre</h1>
+  <div class="niv"><span>Niveau <b id="niv">1</b></span><span class="xp" aria-hidden="true"><i id="xpb"></i></span><span id="xpt">0 XP</span><span id="serie">Série : 0 jour</span></div>
+</header>
+<div class="hors" id="hors" role="alert">Jarvis est éteint. Lance <b>JARVIS.bat</b> : la page se reconnecte toute seule.</div>
+<main>
+  <div class="scene" id="scene">
+    <canvas id="c" width="256" height="144" aria-label="La chambre : clique sur l'ordinateur, le téléphone, les lettres, le tableau ou les livres"></canvas>
+    <div id="badges" aria-hidden="true"></div>
+    <div class="etiquette" id="etiq"></div>
+    <div class="notifs" id="notifs" aria-label="Ce qui t’attend"></div>
+    <div class="charge" id="charge">Jarvis prépare ta journée…</div>
+    <section class="ordi" id="ordi" aria-label="L'ordinateur : le village">
+      <div class="barre-ordi"><span>Le village · sur ton ordi</span><button type="button" id="eteindre">Éteindre</button></div>
+      <div class="corps"><div class="village" id="village"></div></div>
+    </section>
+  </div>
+</main>
+</div>
+
+<script src="app.js"></script>
+<script src="persos.js"></script>
+<script>
+
+/* =========================================================
+   La chambre (256 × 144 pixels, agrandie sans flou), vivante
+   ========================================================= */
+const cv = $('c'), g = cv.getContext('2d');
+const R = (c, x, y, w, h) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
+let ETAT = null, enLigne = false, t0 = performance.now(), survol = null, visiteurs = [], badges = [];
+
+function ciel(h) {
+  if (h < 6 || h >= 21) return {haut:'#141a35', bas:'#2a3160', lum:.42, nuit:true};
+  if (h < 8) return {haut:'#f3a774', bas:'#f8d49a', lum:.12};
+  if (h < 18) return {haut:'#77b9e6', bas:'#bfe2f5', lum:0};
+  return {haut:'#e1795f', bas:'#f2b27c', lum:.16};
+}
+const ZONES = {  // objets cliquables (pixels du jeu) → zone du village
+  ordinateur: {x:127, y:51, w:30, h:22, nom:'L’ordinateur · le village', zone:null},
+  telephone:  {x:70, y:94, w:9, h:8, nom:'Le téléphone · les offres', zone:'offres'},
+  tableau:    {x:80, y:16, w:34, h:26, nom:'Le panneau · les offres', zone:'offres'},
+  lettres:    {x:81, y:95, w:11, h:8, nom:'Les lettres · les mails importants', zone:'cv'},
+  plante:     {x:173, y:62, w:15, h:26, nom:'La plante · le jardin des idées', zone:'idees'},
+  livres:     {x:61, y:34, w:17, h:16, nom:'Les livres · le labo cyber', zone:'labo'},
+  outils:     {x:126, y:101, w:17, h:14, nom:'La caisse à outils · l’atelier', zone:'atelier'},
+  chat:       {x:33, y:93, w:20, h:10, nom:'Le chat · la tour de Jarvis', zone:'tour'},
+};
+const NOMS_ZONES = {cv:'Les mails importants', offres:'Les offres', idees:'Le jardin des idées', atelier:'L’atelier', labo:'Le labo cyber', tour:'La tour de Jarvis'};
+const nZone = id => { const z = ETAT && ETAT.village.find(v => v.id === id); return z ? z.n : 0; };
+const totalVillage = () => ETAT ? ETAT.village.reduce((s, z) => s + z.n, 0) : 0;
+/* Les pastilles rouges (mission 8) : sur chaque objet, le vrai nombre de choses à traiter dans sa zone (mêmes chiffres que le
+   village) ; l'ordinateur = tout le village. Le panneau ouvre la même zone que le téléphone : pas de 2e pastille. */
+const PASTILLES = {telephone:'offres', lettres:'cv', plante:'idees', livres:'labo', outils:'atelier', chat:'tour'};
+function afficherPastilles() {
+  if (!ETAT) return;
+  const k = cv.clientWidth / 256, dx = cv.offsetLeft + cv.clientLeft, dy = cv.offsetTop + cv.clientTop;
+  const pos = [[ZONES.ordinateur, totalVillage()], ...Object.entries(PASTILLES).map(([o, z]) => [ZONES[o], nZone(z)]),
+               ...visiteurs.slice(0, 3).map((v, i) => [{x: 200 + i * 18, y: 95, w: 16}, nZone(v.zone)])];  // l'agent qui a un résultat
+  $('badges').replaceChildren(...pos.filter(([, n]) => n > 0).map(([z, n]) => {
+    const b = el('span', 'pastille-objet', String(n)); b.style.left = (dx + (z.x + z.w) * k - 14) + 'px'; b.style.top = (dy + z.y * k - 12) + 'px'; return b; }));
+}
+
+/* Le personnage se promène : il reste un peu près du lit, va au bureau, revient. */
+function marche(t) {
+  if (CALME) return {x: 100, dir: 1, bouge: false};
+  const p = t % 26;
+  if (p < 8) return {x: 100, dir: 1, bouge: false};
+  if (p < 12) return {x: 100 + (p - 8) / 4 * 50, dir: 1, bouge: true};
+  if (p < 20) return {x: 150, dir: -1, bouge: false};
+  if (p < 24) return {x: 150 - (p - 20) / 4 * 50, dir: -1, bouge: true};
+  return {x: 100, dir: 1, bouge: false};
+}
+
+function dessiner() {
+  const t = CALME ? 0 : (performance.now() - t0) / 1000, now = new Date(), h = now.getHours() + now.getMinutes() / 60, ci = ciel(h);
+  const deco = new Set(ETAT ? ETAT.joueur.deco : []);
+  // Mur, plinthe, sol
+  R('#e9c89b', 0, 0, 196, 88); for (let x = 4; x < 196; x += 12) R('#e2bd8d', x, 0, 4, 88);
+  R('#b9875a', 0, 84, 196, 4); R('#a8703f', 0, 88, 196, 56);
+  for (let y = 92; y < 144; y += 8) R('#96612f', 0, y, 196, 1);
+  for (let y = 88, k = 0; y < 144; y += 8, k++) for (let x = (k % 2) * 20; x < 196; x += 40) R('#8e5a2b', x, y, 1, 8);
+  // Couloir des visiteurs et porte
+  R('#8b6f5c', 196, 0, 60, 88); for (let x = 200; x < 256; x += 10) R('#826754', x, 0, 3, 88);
+  R('#6e5240', 196, 84, 60, 4); R('#7c5634', 196, 88, 60, 56); for (let y = 92; y < 144; y += 8) R('#6e4a2b', 196, y, 60, 1);
+  R('#5d4433', 192, 0, 6, 50); R('#5d4433', 192, 50, 6, 2); R('#4a3426', 192, 52, 2, 36); R('#4a3426', 196, 52, 2, 36);
+  // Fenêtre : le ciel suit l'heure, les nuages passent, les étoiles scintillent
+  R('#7a4f2d', 20, 14, 36, 36);
+  const gr = g.createLinearGradient(0, 17, 0, 47); gr.addColorStop(0, ci.haut); gr.addColorStop(1, ci.bas); g.fillStyle = gr; g.fillRect(23, 17, 30, 30);
+  g.save(); g.beginPath(); g.rect(23, 17, 30, 30); g.clip();
+  if (ci.nuit) { [[27,21],[41,19],[48,27],[33,31],[45,38]].forEach(([a, b], i) => { g.globalAlpha = CALME ? 1 : .55 + .45 * Math.abs(Math.sin(t * .8 + i)); R('#fff7d6', a, b, 1, 1); }); g.globalAlpha = 1; R('#f4edc9', 44, 22, 3, 3); }
+  else for (const [v, y, w, d] of [[1.6, 25, 9, 8], [1.0, 37, 6, 30]]) {
+    const x = 11 + ((t * v + d) % 54);
+    R('rgba(255,255,255,.85)', x, y, w, 3); R('rgba(255,255,255,.85)', x + 2, y - 2, w - 4, 2);
+  }
+  g.restore();
+  R('#7a4f2d', 37, 17, 2, 30); R('#7a4f2d', 23, 31, 30, 2); R('#6a4226', 18, 49, 40, 3);
+  // Étagère et livres (le défi cyber)
+  R('#6a4226', 61, 48, 17, 2); [['#4f7fd9', 62, 38, 3, 10], ['#e3c06b', 65, 40, 3, 8], ['#5fa05a', 68, 37, 3, 11], ['#d9534f', 71, 39, 3, 9], ['#8e7cc3', 74, 41, 3, 7]].forEach(b => R(...b));
+  // Tableau en liège (les idées)
+  R('#7a4f2d', 80, 16, 34, 26); R('#c99a63', 82, 18, 30, 22);
+  R('#f6e27a', 85, 21, 7, 7); R('#9ad3a8', 95, 22, 7, 7); R('#f2a3a3', 104, 21, 6, 7); R('#efe7d6', 88, 31, 9, 6);
+  // Déco débloquée par les niveaux
+  if (deco.has('cadre')) { R('#7a4f2d', 160, 18, 14, 12); R('#9fd0ef', 162, 20, 10, 8); R('#5fa05a', 162, 25, 10, 3); }
+  if (deco.has('poster')) { R('#3c4f7a', 124, 14, 18, 24); R('#f2c46d', 128, 18, 10, 10); R('#e9e2d0', 127, 31, 12, 2); }
+  if (deco.has('aquarium')) { R('#6a4226', 150, 40, 30, 3); R('#9fd3ea', 152, 28, 26, 12); R('#f29a3f', 162 + (CALME ? 0 : Math.round(Math.sin(t) * 6)), 33, 4, 2); R('#3f8f5c', 172, 32, 2, 8); }
+  // Bureau, ordinateur (il brille quand quelque chose t'attend), mug qui fume
+  R('#7a4f2d', 120, 74, 52, 4); R('#6a4226', 122, 78, 3, 22); R('#6a4226', 167, 78, 3, 22); R('#6a4226', 150, 78, 16, 12);
+  R('#2b2024', 130, 54, 24, 18); R('#39465c', 132, 56, 20, 13);
+  R('#5f7fa8', 134, 58, 16, 2); R('#7a95bb', 134, 62, 12, 1); R('#7a95bb', 134, 65, 14, 1);
+  R('#b4412f', 127, 105, 15, 9); R('#8f3022', 127, 105, 15, 2); R('#2b2024', 132, 102, 5, 1); R('#2b2024', 132, 102, 1, 3); R('#2b2024', 136, 102, 1, 3); R('#d9d0c0', 133, 109, 3, 2);
+  R('#2b2024', 140, 72, 4, 2); R('#3a3a44', 132, 72, 20, 2);
+  R('#efe7d6', 123, 69, 4, 5); R('#efe7d6', 127, 70, 1, 2); R('#6a4226', 123, 69, 4, 1);
+  if (!CALME) for (let i = 0; i < 3; i++) { const ph = (t * .55 + i / 3) % 1; g.globalAlpha = (1 - ph) * .75;
+    R('#ffffff', 124 + (i % 2) + Math.round(Math.sin(ph * 6 + i)), Math.round(67 - ph * 9), 1, 2); }
+  g.globalAlpha = 1;
+  if (deco.has('lampe')) { R('#5d5d66', 162, 64, 2, 10); R('#f2c46d', 158, 60, 10, 5); }
+  // La plante bouge doucement
+  R('#b5603a', 176, 78, 10, 10); R('#a3542f', 176, 78, 10, 2);
+  const f = CALME ? 0 : Math.round(Math.sin(t * 1.3)), f2 = CALME ? 0 : Math.round(Math.sin(t * 1.3 + 1.2));
+  R('#4f9a5c', 177, 70, 3, 8); R('#4f9a5c', 174 + f, 66, 5, 6); R('#5fae6b', 182, 69, 3, 9); R('#5fae6b', 181 + f2, 63, 5, 8);
+  // Lit, et le chat qui dort dessus
+  R('#6a4226', 6, 98, 56, 4); R('#6a4226', 6, 92, 4, 30); R('#6a4226', 58, 100, 4, 22);
+  R('#efe7d6', 10, 96, 14, 7); R('#4f8a6a', 10, 102, 50, 16); R('#5f9c79', 10, 102, 50, 3); R('#6a4226', 6, 118, 56, 4);
+  const souffle = CALME ? 0 : (Math.sin(t * 2.2) > 0 ? 1 : 0);
+  R('#c97a2f', 34, 100, 4, 2); R('#e3913f', 37, 98 - souffle, 11, 4 + souffle); R('#c97a2f', 40, 98 - souffle, 1, 3); R('#c97a2f', 43, 98 - souffle, 1, 3);
+  R('#e3913f', 47, 96, 5, 5); R('#e3913f', 47, 95, 1, 1); R('#e3913f', 51, 95, 1, 1); R('#2b2024', 48, 98, 1, 1); R('#2b2024', 50, 98, 1, 1);
+  if (!CALME) { const ph = (t / 2.4) % 1, zx = 53 + Math.round(ph * 6), zy = 93 - Math.round(ph * 10); g.globalAlpha = Math.sin(ph * Math.PI);
+    R('#2b2024', zx, zy, 3, 1); R('#2b2024', zx + 1, zy + 1, 1, 1); R('#2b2024', zx, zy + 2, 3, 1); g.globalAlpha = 1; }
+  // Table de chevet : téléphone et lettres
+  R('#7a4f2d', 66, 102, 30, 3); R('#6a4226', 68, 105, 3, 14); R('#6a4226', 91, 105, 3, 14);
+  R('#2b2024', 71, 95, 7, 8); R('#5f7fa8', 72, 96, 5, 6);
+  R('#f3ead8', 82, 96, 9, 6); R('#c9bba0', 82, 96, 9, 1); R('#c9bba0', 83, 97, 2, 1); R('#c9bba0', 88, 97, 2, 1); R('#c9bba0', 85, 98, 3, 1);
+  if (deco.has('tapis')) { R('#9a4e4e', 96, 122, 70, 14); R('#c47a5a', 100, 125, 62, 8); }
+  // Le personnage se promène, et fait signe quand quelque chose l'attend
+  const m = marche(t), occupe = ETAT && ETAT.priorites.maintenant.length > 0;
+  const bob = m.bouge ? Math.floor(t * 4) % 2 : 0;
+  const sp = occupe && !m.bouge && (CALME || Math.floor(t * 2.5) % 2) ? SPR.perso_signe : SPR.perso;
+  const jx = Math.round(m.x);
+  g.globalAlpha = .25; R('#2b2024', jx, 118, 16, 2); g.globalAlpha = 1;
+  if (m.dir < 0) { g.save(); g.translate(jx + 16, 0); g.scale(-1, 1); g.drawImage(sp, 0, 95 - bob); g.restore(); } else g.drawImage(sp, jx, 95 - bob);
+  // Visiteurs dans le couloir
+  visiteurs.slice(0, 3).forEach((v, i) => {
+    const x = 200 + i * 18, y = 95;
+    g.globalAlpha = .25; R('#2b2024', x, y + 23, 16, 2); g.globalAlpha = 1;
+    g.drawImage(SPR[v.perso], x, y - (CALME ? 0 : (Math.floor(t * 1.2 + i) % 2)));
+    v.zoneJ = {x, y, w:16, h:24};
+  });
+  // Lumière selon l'heure (la nuit, l'écran et la lampe restent lumineux)
+  if (ci.lum) {
+    g.fillStyle = `rgba(20,24,60,${ci.lum})`; g.fillRect(0, 0, 256, 144);
+    g.globalCompositeOperation = 'lighter';
+    const lu = g.createRadialGradient(142, 64, 2, 142, 64, 40); lu.addColorStop(0, 'rgba(110,140,190,.22)'); lu.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = lu; g.fillRect(100, 30, 90, 70);
+    if (deco.has('lampe')) { const la = g.createRadialGradient(163, 64, 2, 163, 64, 46); la.addColorStop(0, 'rgba(242,196,109,.28)'); la.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = la; g.fillRect(115, 20, 96, 90); }
+    g.globalCompositeOperation = 'source-over';
+  }
+  if (survol && survol.zoneJ) {  // l'objet survolé s'illumine
+    const z = survol.zoneJ; g.globalCompositeOperation = 'lighter'; g.fillStyle = 'rgba(255,236,190,.22)'; g.fillRect(z.x - 1, z.y - 1, z.w + 2, z.h + 2);
+    g.globalCompositeOperation = 'source-over'; g.strokeStyle = '#fff8ec'; g.lineWidth = 1; g.strokeRect(z.x - .5, z.y - .5, z.w + 1, z.h + 1); }
+}
+function boucle() { if (!document.hidden && !ordiAllume) dessiner(); requestAnimationFrame(boucle); }
+
+/* La chambre prend toute la page : le canvas suit la fenêtre (rapport 16/9), les pixels restent nets (image-rendering: pixelated). */
+function ajuster() {
+  const haut = cv.getBoundingClientRect().top + scrollY, dispoL = innerWidth - 32, dispoH = innerHeight - haut - 22;
+  const l = Math.max(300, Math.min(dispoL, dispoH * 16 / 9));
+  cv.style.width = Math.floor(l) + 'px'; $('scene').style.width = (Math.floor(l) + 12) + 'px';
+  afficherPastilles();
+  if (CALME) dessiner();
+}
+addEventListener('resize', ajuster);
+
+/* Une seule bulle à la fois : le premier visiteur, ou ce qu'on survole */
+
+/* Souris et doigt */
+function cible(e) {
+  const r = cv.getBoundingClientRect(), x = (e.clientX - r.left) * 256 / r.width, y = (e.clientY - r.top) * 144 / r.height;
+  const dans = z => x >= z.x && x < z.x + z.w && y >= z.y && y < z.y + z.h;
+  for (const v of visiteurs.slice(0, 3)) if (v.zoneJ && dans(v.zoneJ)) return v;
+  for (const [nom, z] of Object.entries(ZONES)) if (dans(z)) return {objet: nom, zoneJ: z, zone: z.zone, nom: z.nom};
+  return null;
+}
+function etiquette(c) {  // juste le nom : La personne regarde elle-même ce qui l'attend
+  if (c.perso) return NOMS_ZONES[c.zone] || '';
+  return c.nom;
+}
+cv.addEventListener('pointermove', e => {
+  survol = cible(e); cv.classList.toggle('main', !!survol);
+  $('etiq').textContent = survol ? etiquette(survol) : ''; $('etiq').classList.toggle('vu', !!survol);
+  if (CALME) dessiner();
+});
+cv.addEventListener('pointerleave', () => { survol = null; $('etiq').classList.remove('vu'); if (CALME) dessiner(); });
+cv.addEventListener('click', e => { const c = cible(e); if (!c) return; if (c.objet === 'ordinateur') allumer(); else ouvrirZone(c.zone); });
+
+/* =========================================================
+   État, visiteurs, maintenant
+   ========================================================= */
+const VISITEURS = {  // une phrase courte, des mots de tous les jours
+  mails:        {perso:'facteur',    zone:'cv',      texte: n => n > 1 ? `${n} recruteurs t’ont écrit !` : 'Un recruteur t’a écrit !'},
+  offres:       {perso:'recruteuse', zone:'offres',  texte: n => `${n} offre${n > 1 ? 's' : ''} pour toi`},
+  veille:       {perso:'eclaireur',  zone:'idees',   texte: () => 'J’ai une idée pour toi'},
+  exercice:     {perso:'mentor',     zone:'labo',    texte: (n, e) => `Défi du jour : ${e.duree}`},
+  amelioration: {perso:'ingenieur',  zone:'atelier', texte: () => 'Une idée pour Jarvis'},
+  alerte:       {perso:'gardien',    zone:'tour',    texte: () => 'J’ai bloqué un message'},
+};
+const ZONE_AGENT = {mails:'cv', offres:'offres', veille:'idees', exercice:'labo', amelioration:'atelier', alerte:'tour', attente:'tour'};
+
+function construireVisiteurs() {
+  const groupes = {};
+  for (const t of ETAT.priorites.maintenant.concat(ETAT.priorites.attendre)) (groupes[t.agent] = groupes[t.agent] || []).push(t);
+  visiteurs = [];
+  for (const [agent, ts] of Object.entries(groupes)) {
+    const v = VISITEURS[agent]; if (!v) continue;
+    visiteurs.push({agent, perso: v.perso, zone: v.zone, texte: v.texte(ts.length, ETAT.exercice), urgent: ts.some(t => t.maintenant)});
+  }
+  visiteurs.sort((a, b) => b.urgent - a.urgent);
+}
+const AGENT_ZONE = {cv:'Facteur', offres:'Recruteuse', idees:'Éclaireur', labo:'Mentor', atelier:'Ingénieur', tour:'Gardien'};
+function afficherNotifs() {  // seulement les vraies (pas les « info »), le nom de l'agent, un clic ouvre sa zone
+  const box = $('notifs'); box.replaceChildren();
+  const vraies = ETAT.village.flatMap(z => z.items.filter(i => !i.info).map(i => ({z, i})));
+  for (const {z, i} of vraies.slice(0, 4)) {
+    const b = el('button'); b.type = 'button';
+    b.append(el('b', '', AGENT_ZONE[z.id] + ' · '), el('span', z.id === 'cv' ? 'prive' : '', z.id === 'cv' ? 'un mail important' : i.titre));
+    b.title = NOMS_ZONES[z.id]; b.onclick = () => ouvrirZone(z.id); box.append(b);
+  }
+  if (vraies.length > 4) { const b = el('button', '', `+ ${vraies.length - 4} autre${vraies.length > 5 ? 's' : ''} : ouvrir le village`); b.type = 'button'; b.onclick = () => allumer(); box.append(b); }
+}
+function afficherJoueur() {
+  const j = ETAT.joueur;
+  $('niv').textContent = j.niveau; $('xpt').textContent = j.xp + ' XP';
+  $('xpb').style.width = Math.round(100 * (j.xp - j.xp_niveau) / Math.max(1, j.xp_suivant - j.xp_niveau)) + '%';
+  $('serie').textContent = 'Série : ' + j.serie + ' jour' + (j.serie > 1 ? 's' : '');
+}
+
+let premier = true;
+async function rafraichir() {
+  try { ETAT = await api('/jeu'); enLigne = true; construireVisiteurs(); afficherJoueur(); afficherNotifs(); afficherPastilles(); if (ordiAllume) afficherVillage(); if ($('fen') && $('fen').open && zoneOuverte) ouvrirZone(zoneOuverte, true); }
+  catch (e) { enLigne = false; }
+  $('hors').classList.toggle('vu', !enLigne);
+  $('charge').hidden = enLigne;
+  if (!enLigne) $('charge').textContent = 'Jarvis est éteint.';
+  if (premier && enLigne) {  // jeu.html#offres (ou un ancien nom d'objet) ouvre directement la bonne zone
+    const h = location.hash.slice(1).replace(/-?discret/, ''), anciens = {ordinateur:'cv', telephone:'offres', tableau:'idees', journal:'tour', jauge:'tour'};
+    const z = anciens[h] || h;
+    if (h === 'village') allumer(); else if (ETAT.village.some(v => v.id === z)) ouvrirZone(z);
+  }
+  premier = false;
+  if (CALME) dessiner();
+  clearTimeout(rafraichir.m); rafraichir.m = setTimeout(rafraichir, enLigne ? 30000 : 5000);
+}
+async function xp(raison, ref) {
+  try { const j = await api('/jeu/xp', {raison, ref}); const avant = ETAT.joueur.xp; ETAT.joueur = j; afficherJoueur(); if (j.xp > avant) toast(`+${j.xp - avant} XP`); } catch (e) {}
+}
+
+/* =========================================================
+   L'ordinateur : le village et ses 6 zones (mêmes données que le site)
+   ========================================================= */
+const COULEURS = {cv:['#d9a066', '#7a4a2a'], idees:['#f2d27a', '#3d7a3a'], offres:['#9fc5e8', '#2a4a7a'], atelier:['#b7b7b7', '#555555'], labo:['#8e7cc3', '#3a2a6a'], tour:['#e08a4f', '#7a2f10']};
+let ordiAllume = false, zoneChoisie = null, focusAvant = null;
+function allumer(zone) {
+  if (!ETAT) { toast('Jarvis est éteint : lance JARVIS.bat.'); return; }
+  zoneChoisie = zone || null;
+  if (!ordiAllume) focusAvant = document.activeElement;
+  ordiAllume = true; $('ordi').classList.add('vu');
+  $('etiq').classList.remove('vu');
+  afficherVillage();
+  setTimeout(() => { const b = document.querySelector('.zone[aria-pressed=true]'); if (b) b.focus(); }, 60);
+}
+function eteindre() { ordiAllume = false; $('ordi').classList.remove('vu'); if (focusAvant && focusAvant.focus) focusAvant.focus(); if (CALME) dessiner(); }
+$('eteindre').onclick = eteindre;
+addEventListener('keydown', e => { if (e.key === 'Escape' && ordiAllume && !document.querySelector('dialog[open]')) eteindre(); });
+
+function afficherVillage() {
+  const v = $('village'); v.replaceChildren();
+  for (const z of ETAT.village) {
+    const b = el('button', 'zone'); b.type = 'button'; b.style.setProperty('--c', COULEURS[z.id][0]); b.style.setProperty('--p', COULEURS[z.id][1]);
+    b.setAttribute('aria-pressed', z.id === zoneChoisie);
+    const bas = el('span', 'bas'); bas.append(el('span', 'perso'), el('span', 'dit', z.bulle));
+    b.append(el('span', 'nom', z.nom), bas); if (z.n) b.append(el('span', 'n', String(z.n)));
+    const noms = z.items.filter(i => !i.info).slice(0, 3);  // ce qui attend, par son nom (un clic ouvre la zone)
+    if (noms.length) { const u = el('span', 'noms' + (z.id === 'cv' ? ' prive' : '')); noms.forEach(i => u.append(el('span', '', i.titre))); b.append(u); }
+    b.onclick = () => ouvrirZone(z.id);
+    v.append(b);
+  }
+}
+async function plusTard(it) { try { await api('/plus-tard', {id: it.id}); toast('C’est noté, ça revient demain.'); } catch (e) { toast(e.message); } await rafraichir(); }
+let zoneOuverte = null;
+function ouvrirZone(id, rafraichi) {
+  if (!ETAT) { toast('Jarvis est éteint : lance JARVIS.bat.'); return; }
+  const z = ETAT.village.find(x => x.id === id); if (!z) return;
+  zoneOuverte = id;
+  const garde = rafraichi && $('fen') && $('fen').querySelector('.boite') ? $('fen').querySelector('.boite').scrollTop : 0;
+  const p = fenetre(z.nom); p.parentElement.classList.add('large', 'geant');
+  $('fen').onclose = () => { zoneOuverte = null; };
+  if (id === 'offres') { const box = el('div'); p.append(box); afficherOffres(box); return; }  // la même page Offres que le site
+  if (id === 'cv') { const r = ligneRefus(z.refus); if (r) p.append(r); }
+  if (id === 'tour' && ETAT.briefing) p.append(el('p', 'mut', ETAT.briefing.split('\n')[0]));
+  if (id === 'tour' && z.bloques) { const n = el('p', 'dim', `Cette semaine, ${z.bloques} texte${z.bloques > 1 ? 's' : ''} piégé${z.bloques > 1 ? 's' : ''} mis de côté. `); n.append(lien('voir', 'alertes.html', '')); p.append(n); }
+  if (id === 'atelier') { const n = el('p', 'dim', 'Tout ce qui a planté ou été bloqué, avec le texte exact : '); n.append(lien('Alertes et problèmes', 'alertes.html', '')); p.append(n); }
+  if (!z.items.length) p.append(el('p', 'mut', z.bulle + '.'));
+  const grille = el('div', 'cartes-zone'); p.append(grille);
+  for (const it of z.items) {
+    const c = el('article', 'carte-zone'), act = el('div', 'actions');
+    if (!it.info && it.type !== 'proposition') { const x = bouton('✕', 'fermer-x', async () => { try { await api('/plus-tard', {id: it.id, toujours: true}); } catch (e) { toast(e.message); } await rafraichir(); ouvrirZone(id); });
+      x.setAttribute('aria-label', 'Enlever « ' + it.titre + ' »'); x.title = 'Enlever'; c.append(x); }
+    c.append(el('b', it.type === 'mail' ? 'prive' : '', it.titre)); if (it.texte) c.append(el('p', '', it.texte));
+    const action = bouton(it.type === 'proposition' ? 'Accepter' : it.action, 'pri', ev => agir(it, ev.target, c)); act.append(action);
+    if (it.type === 'mail') { const m = ETAT.mails.items.find(x => x.id === it.id) || {id: it.id}; act.append(bouton('Lire le mail', '', () => ouvrirFil(m)));
+      for (const [q, n, msg] of [['repondu', 'Déjà répondu', 'Noté : tu as déjà répondu.'], ['supprime', 'Supprimer', 'Enlevé (le mail reste dans Gmail).']])
+        act.append(bouton(n, '', async () => { try { await api('/mails/fait', {id: it.id, quoi: q}); toast(msg); } catch (e) { toast(e.message); } await rafraichir(); ouvrirZone(id); })); }
+    if (it.type === 'proposition' || it.type === 'amelioration')
+      act.append(bouton(it.type === 'proposition' ? 'Refuser' : 'Non merci', '', async () => { try { await api(it.type === 'proposition' ? '/decision' : '/ameliorations/decision', {id: it.id, decision: 'refuser'}); toast('C’est noté'); } catch (e) { toast(e.message); } await rafraichir(); ouvrirZone(id); }));
+    if (!it.info && it.type !== 'proposition') act.append(bouton('Plus tard', '', async () => { await plusTard(it); ouvrirZone(id); }));
+    if (it.type === 'proposition' && httpSur(it.lien)) act.append(lien('Voir', it.lien, 'btn'));
+    if (it.type === 'amelioration') { const am = ETAT.ameliorations.find(a => a.id === it.id);
+      if (am && am.diff) { const d = el('details'); d.append(el('summary', '', 'voir le changement'), el('pre', '', am.diff.slice(0, 3000))); c.append(d); } }
+    c.append(act); grille.append(c);
+  }
+  if (garde) p.scrollTop = garde;
+}
+async function agir(it, b, carte) {
+  if (it.type === 'mail') { const m = ETAT.mails.items.find(x => x.id === it.id) || {id: it.id}; return ouvrirBrouillon(m, rafraichir); }
+  if (it.type === 'offre') return ouvrirOffre(it.id);
+  if (it.type === 'equipe') { location.href = 'pilote.html'; return; }
+  if (it.type === 'page') { location.href = it.page; return; }
+  if (it.faire === 'ollama') { b.disabled = true; b.textContent = 'Relance…';
+    try { const r = await api('/services/ollama-relancer', {}); toast((r.message || 'Relance lancée') + ' Vérifie dans 15 secondes.'); } catch (e) { toast(e.message); }
+    return rafraichir(); }
+  if (it.type === 'probleme') { try { await api('/alertes/lu', {probleme: it.id, etat: 'regle'}); toast('Réglé : il disparaît partout.'); } catch (e) { toast(e.message); } await rafraichir(); if (zoneOuverte) ouvrirZone(zoneOuverte); return; }
+  if (it.type === 'exercice') {
+    if (b.dataset.fait) { await xp('exercice', ETAT.exercice.id); return rafraichir(); }
+    if (httpSur(it.lien)) open(it.lien, '_blank', 'noopener');
+    else if (it.consigne) carte.insertBefore(el('p', '', it.consigne), b.parentElement);
+    b.textContent = 'C’est fait !'; b.dataset.fait = '1'; return;
+  }
+  b.disabled = true;
+  try {
+    if (it.type === 'proposition') { await api('/decision', {id: it.id, decision: 'accepter'}); toast('Notée : on l’installera ensemble · +10 XP'); }
+    else if (it.type === 'amelioration') {
+      if (!confirm('Appliquer ce changement au code de Jarvis ? (un commit git permet de revenir en arrière)')) { b.disabled = false; return; }
+      await api('/ameliorations/decision', {id: it.id, decision: 'accepter'}); toast('Appliquée · +15 XP'); }
+    else if (it.type === 'confirmer') { await api('/confirmer', {id: it.ref}); toast('C’est fait.'); }
+  } catch (e) { toast(e.message); b.disabled = false; return; }
+  await rafraichir(); if (zoneOuverte) ouvrirZone(zoneOuverte);
+}
+
+/* Démarrage */
+ajuster(); if (CALME) { rafraichir(); dessiner(); } else { rafraichir(); boucle(); }
+</script>
+</body>
+</html>

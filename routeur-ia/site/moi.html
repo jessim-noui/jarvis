@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Moi · Profil fictif</title>
+<meta name="description" content="Profil fictif : formation, expériences, compétences et projets de démonstration.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8' fill='%23b5561f'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="lib/fonts/fonts.css">
+<link rel="stylesheet" href="app.css">
+<style>
+main.ecran{max-width:1240px}
+/* L'en-tête : qui il est, en grand */
+.hero-moi{display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center;padding:34px;border-radius:28px;margin-bottom:22px;
+  background:linear-gradient(150deg,var(--carte2) 0%,#f6e6d3 100%);border:1px solid var(--line2);box-shadow:0 20px 50px rgba(80,55,25,.10)}
+.mono{width:112px;height:112px;border-radius:30px;display:grid;place-items:center;font:700 44px 'Fraunces',serif;color:#fff;
+  background:radial-gradient(circle at 35% 30%,#e9a06c,var(--orange) 70%);box-shadow:0 14px 34px rgba(181,86,31,.35)}
+.hero-moi h1{font-size:clamp(36px,5vw,58px);line-height:1}
+.hero-moi .accroche{color:var(--mut);font-size:18px;margin-top:10px;max-width:62ch;line-height:1.5}
+.badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.badges span{font-size:13.5px;padding:5px 12px;border-radius:999px;background:var(--blanc);border:1px solid var(--line2)}
+.hero-moi .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+/* À confirmer : bien visible, juste sous l'en-tête */
+.confirmer{display:flex;flex-direction:column;gap:10px;padding:20px 24px;border-radius:20px;margin-bottom:22px;background:#fdeee4;border:1px solid #efc9b4}
+.confirmer h2{font-size:20px}
+.confirmer ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px}
+.confirmer li{color:#5a4636;line-height:1.5}
+.confirmer .lien-bouton{margin-left:6px}
+/* Les sections */
+.section-moi{margin-top:34px}
+.section-moi>h2{font-size:26px;display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.section-moi>h2 .btn{font:500 14px 'Work Sans',sans-serif}
+.cartes-moi{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.c-moi{position:relative;display:flex;flex-direction:column;gap:8px;padding:20px 22px;border-radius:20px;background:var(--blanc);border:1px solid var(--line2);
+  box-shadow:0 10px 26px rgba(80,55,25,.07);transition:transform .35s cubic-bezier(.16,1,.3,1),box-shadow .35s}
+.c-moi:hover{transform:translateY(-3px);box-shadow:0 16px 36px rgba(80,55,25,.13)}
+.c-moi b{font-family:'Fraunces',serif;font-size:19px;padding-right:70px}
+.c-moi p{color:var(--mut);font-size:14.5px;line-height:1.5}
+.puces-moi{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:6px}
+.puces-moi span{font-size:13px;padding:4px 10px;border-radius:999px;background:var(--surf2)}
+.modif{position:absolute;top:18px;right:18px;font-size:13px;color:var(--lien);text-decoration:underline}
+.domaine-moi b{font-family:'Work Sans',sans-serif;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#9a5a2c}
+/* Le parcours : une frise */
+.frise{list-style:none;margin:0;padding:0 0 0 22px;border-left:2px solid var(--line2);display:flex;flex-direction:column;gap:18px}
+.frise li{position:relative}
+.frise li::before{content:'';position:absolute;left:-30px;top:22px;width:12px;height:12px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 4px #f6e6d3}
+.frise .quand{font-size:13px;color:var(--dim)}
+.deux{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.vide-moi{color:var(--dim);font-size:14.5px}
+@media (max-width:760px){.hero-moi{grid-template-columns:1fr;padding:24px}.mono{width:76px;height:76px;font-size:30px;border-radius:22px}.deux{grid-template-columns:1fr}}
+/* Mission 12 (maquette Moi4_UnEcran) : tout sur un écran — magazine en haut, frise au milieu (fiche en bulle), projets en accordéon */
+body{background:var(--fond2)}
+main.un-ecran{max-width:1320px;margin:0 auto;height:100vh;padding:calc(var(--nav) + 14px) 28px 16px;display:grid;grid-template-rows:minmax(0,345px) auto minmax(220px,1fr);gap:12px;overflow:hidden}
+.mag{position:relative;background:var(--carte);border-radius:6px;padding:16px 20px;box-shadow:0 2px 0 var(--bord);display:grid;grid-template-columns:44px minmax(0,1fr) 44px;gap:18px;align-items:center;min-height:0}
+.mag .fl{width:44px;height:44px;border-radius:50%;border:1px solid var(--sombre);font-size:19px;transition:background .2s,color .2s}
+.mag .fl.suiv{background:var(--sombre);color:var(--carte);border:0}.mag .fl:hover{background:var(--sombre);color:var(--carte)}
+.page-mag{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;row-gap:8px;align-content:center;min-height:0;animation:apparait .5s ease .1s both}
+.page-mag .ru{grid-column:span 12;display:flex;justify-content:space-between;gap:12px;border-bottom:2px solid var(--sombre);padding-bottom:5px;font-size:11.5px;letter-spacing:.12em;text-transform:uppercase}
+.page-mag .ru .lien-mag{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--lien);text-decoration:underline}
+.page-mag h1{grid-column:span 12;font-weight:400;font-size:clamp(34px,4.6vw,62px);line-height:1.02;text-wrap:balance}
+.page-mag .col{grid-column:span 4;font-size:15px;line-height:1.5}
+.page-mag .col + .col{border-left:1px solid var(--bord);padding-left:16px}
+.page-mag .lettrine::first-letter{font-family:'Fraunces',serif;font-size:44px;float:left;line-height:.8;margin:6px 8px 0 0}
+.page-mag blockquote{grid-column:2 / span 10;text-align:center;font:italic 400 21px 'Fraunces',serif;color:var(--brique)}
+.page-mag .attente{grid-column:span 12;color:var(--mut);font-size:15px}
+/* Mission 14 (maquette Moi6_FriseAvant) : ronds cerclés de leur couleur, qui grossissent au survol et quand ils sont ouverts ;
+   un clic déplie SOUS la frise la fiche encadrée de la couleur du point ; tout reste sur un écran (magazine réduit, projets en bande). */
+body[data-ecran=moi]{font-family:'Work Sans','Inter',sans-serif;color:var(--encre)}
+main.un-ecran.fiche-ouverte{grid-template-rows:236px auto minmax(112px,1fr)}
+main.fiche-ouverte .page-mag{row-gap:4px}main.fiche-ouverte .page-mag h1{font-size:40px}main.fiche-ouverte .page-mag .col{font-size:13.5px;line-height:1.45}
+main.fiche-ouverte .page-mag blockquote{font-size:17px}main.fiche-ouverte .page-mag .lettrine::first-letter{font-size:36px}
+
+.parcours{display:flex;flex-direction:column;gap:10px;min-height:0}
+.frise-l{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));list-style:none;margin:0;padding:0}
+.frise-l li{position:relative;display:flex}
+.frise-l li::before{content:'';position:absolute;top:36px;height:3px;background:var(--bord);left:0;right:0}
+.frise-l li:first-child::before{left:50%}.frise-l li:last-child::before{right:50%}
+.frise-l button{position:relative;flex:1;font:inherit;color:inherit;display:flex;flex-direction:column;align-items:center;gap:6px;padding:0 4px}
+.frise-l .an{font:12px 'JetBrains Mono',monospace;color:var(--gris)}
+.frise-l .pt{width:32px;height:32px;border-radius:50%;border:2px solid var(--c);background:var(--carte);display:grid;place-items:center;transition:transform .25s cubic-bezier(.16,1,.3,1)}
+.frise-l .pt::after{content:'';width:20px;height:20px;border-radius:50%;background:var(--c)}
+.frise-l button:hover .pt,.frise-l button[aria-expanded=true] .pt{transform:scale(1.18)}
+.frise-l b{font-size:13.5px;text-align:center;line-height:1.25;text-underline-offset:4px}
+.frise-l button:hover b,.frise-l button[aria-expanded=true] b{text-decoration:underline}
+/* Mission 15 (maquette R_Moi7_Corrige) : bandeau plein de la couleur du point, détails à droite, la fiche se déplie de haut en bas */
+.fiche-moi{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);border-radius:18px;overflow:hidden;background:var(--carte);box-shadow:0 10px 28px rgba(36,28,20,.16);min-height:0;
+  animation:ouvre .55s cubic-bezier(.22,1,.36,1) both;view-transition-name:fiche-moi}
+@keyframes ouvre{from{opacity:0;clip-path:inset(0 0 100% 0 round 18px)}to{opacity:1;clip-path:inset(0 0 0 0 round 18px)}}
+.fiche-moi .bandeau{background:var(--c);color:var(--sur-c);padding:18px 22px;display:flex;flex-direction:column;justify-content:flex-end;gap:6px;position:relative;overflow:hidden}
+.fiche-moi .bandeau::after{content:'';position:absolute;right:-30px;top:-30px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.12)}
+.fiche-moi .k{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;opacity:.85}
+.fiche-moi h3{margin:0;font:600 27px/1.1 'Fraunces',serif}
+.fiche-moi .droite{padding:16px 22px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 18px;align-content:center}
+.fiche-moi ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px}
+.fiche-moi li{display:flex;gap:10px;font-size:14.5px;line-height:1.45}.fiche-moi li::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--c);flex:none;margin-top:7px}
+.fiche-moi .fermer{align-self:start;width:34px;height:34px;border-radius:50%;border:1px solid var(--bord);font-size:16px}
+.fiche-moi .comp{grid-column:span 2;display:flex;gap:6px;flex-wrap:wrap;align-items:center}.fiche-moi .comp b{font-size:12.5px;margin-right:4px}
+.fiche-moi .comp .p{font:12px 'JetBrains Mono',monospace;background:color-mix(in srgb,var(--c) 14%,transparent);color:var(--encre);border-radius:999px;padding:3px 10px}
+.fiche-moi .glisse{animation:glisse .5s cubic-bezier(.16,1,.3,1) both}
+@keyframes glisse{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
+.fiche-moi .modif-l{font-size:12.5px;color:var(--lien);text-decoration:underline;margin-left:auto}
+.tags{display:flex;flex-wrap:wrap;gap:6px}.tags span{font:12.5px 'JetBrains Mono',monospace;background:var(--carte);border-radius:6px;padding:3px 9px}
+main.fiche-ouverte .proj .accroche{display:none}
+/* Mission 15 (image 07) : un projet ouvert réduit le portrait au titre et à la citation, les autres cartes restent pleines */
+main.un-ecran.projet-ouvert{grid-template-rows:170px auto minmax(0,1fr)}main.projet-ouvert .page-mag .col{display:none}main.projet-ouvert .page-mag h1{font-size:36px}
+main.projet-ouvert .page-mag blockquote{font-size:17px}main.projet-ouvert .proj .accroche{display:none}
+.projets{display:flex;flex-direction:column;gap:8px;min-height:0}
+.projets .h{display:flex;justify-content:space-between;align-items:baseline;gap:10px}.projets h2{font-size:21px}.projets .h span{font-size:12.5px;color:var(--gris)}
+.rangee-proj{display:flex;gap:10px;flex:1;min-height:0}
+.proj{font:inherit;padding:0;border-radius:14px;overflow:hidden;background:var(--carte);display:flex;flex-direction:column;text-align:left;min-width:0;flex:1 1 0;color:var(--txt);
+  transition:transform .25s ease,box-shadow .25s ease,flex-grow .6s cubic-bezier(.3,.7,.2,1)}
+.proj:hover{transform:translateY(-6px) rotate(-1deg);box-shadow:0 14px 30px rgba(36,28,20,.2)}
+html[data-theme=sombre] .proj{box-shadow:0 0 0 1px var(--bord,#2e3240)}html[data-theme=sombre] .proj:hover{box-shadow:0 0 0 1px var(--bord,#2e3240),0 14px 30px rgba(0,0,0,.45)}
+.proj[aria-expanded=true]{flex-grow:5}.proj[aria-expanded=true]:hover{transform:none}
+.rangee-proj.une .proj[aria-expanded=false]{flex-grow:.65}
+.proj .haut{padding:12px;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;flex:1;min-height:0}
+.proj[aria-expanded=true] .haut{flex:0 0 auto;min-height:70px}
+.proj .tag{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;opacity:.8}
+.proj .nom{font:800 17px/1.05 'Fraunces',serif}.proj[aria-expanded=true] .nom{font-size:28px}
+.proj .accroche{padding:8px 10px;font-size:12px;color:var(--encre2);background:var(--carte)}
+.proj .contenu{padding:10px 16px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 18px;font-size:13px;line-height:1.45;background:var(--carte);flex:1;overflow:auto;align-content:center}
+.ligne{animation:entre .5s cubic-bezier(.16,1,.3,1) both}@keyframes entre{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+::view-transition-group(*){animation-duration:.6s;animation-timing-function:cubic-bezier(.22,1,.36,1)}
+.proj .contenu b{color:var(--brique)}.proj .contenu .large{grid-column:span 2}
+.proj .contenu .bas{grid-column:span 2;display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.proj .contenu .bas .ent{margin-left:auto;font-size:12px;color:var(--gris)}
+.proj .contenu .bas .ent b{color:var(--gris)}
+.article p{line-height:1.7;margin-top:10px;max-width:65ch}
+.article .appris{margin-top:16px;padding:12px 16px;border-radius:12px;background:var(--surf2)}
+@keyframes apparait{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.page-mag,.fiche-moi,.fiche-moi .glisse,.ligne{animation:none}::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}.proj,.frise-l .pt{transition:none}.proj:hover,.frise-l button .pt{transform:none!important}}
+@media (max-width:900px){main.un-ecran{height:auto;overflow:visible;grid-template-rows:auto;padding:calc(var(--nav) + 14px) 16px 24px}
+  .mag{grid-template-columns:1fr}.mag .fl{display:none}.page-mag .col{grid-column:span 12}.page-mag .col + .col{border-left:0;padding-left:0}.page-mag blockquote{grid-column:span 12}
+  .frise-l{overflow-x:auto;grid-template-columns:repeat(var(--n),96px)}.fiche-moi{grid-template-columns:1fr}main.un-ecran.fiche-ouverte,main.un-ecran.projet-ouvert{grid-template-rows:auto}
+  .rangee-proj{flex-direction:column}.proj{min-height:110px}.proj .contenu{grid-template-columns:1fr}.proj .contenu .large,.proj .contenu .bas{grid-column:auto}}
+</style>
+</head>
+<body data-ecran="moi">
+<main class="un-ecran" id="page">
+  <div class="hors" id="hors" style="grid-column:1/-1">Jarvis est éteint : double-clique sur <b>JARVIS.bat</b>.</div>
+</main>
+<script src="app.js"></script>
+<script>
+let MOI = null;
+const GENRES = {experience: ['experiences', 'Expérience'], formation: ['formation', 'Formation'], projet: ['projets', 'Projet'],
+                certificat: ['certificats', 'Certificat'], competence: ['competences', 'Compétence'], langue: ['langues', 'Langue'], autre: ['autres', 'Autre']};
+async function sauver() {
+  try { await api('/moi', {moi: MOI}); toast('Enregistré sur ton PC'); } catch (e) { toast(e.message); }
+  afficher();
+}
+/* Une seule fenêtre pour ajouter ou modifier (compétence, projet, certificat, expérience…) */
+function editer(genre, index) {
+  const [cle, nom] = GENRES[genre], liste = MOI[cle] = MOI[cle] || [], x = index == null ? null : liste[index];
+  const b = fenetre(x == null ? 'Ajouter' : 'Modifier'), champs = {};
+  if (x == null) {
+    const lab = el('label', '', 'Quoi ?'), sel = el('select'); sel.id = 'genre';
+    for (const [g, [, n]] of Object.entries(GENRES)) { const o = el('option', '', n); o.value = g; sel.append(o); }
+    sel.value = genre; sel.onchange = () => editer(sel.value); lab.htmlFor = 'genre'; b.append(lab, sel);
+  }
+  const champ = (k, lab, val, long) => { const l = el('label', '', lab), i = el(long ? 'textarea' : 'input'); i.id = 'c-' + k; l.htmlFor = i.id; i.value = val || '';
+    if (long) i.style.minHeight = '100px'; b.append(l, i); champs[k] = i; };
+  if (genre === 'competence') { champ('domaine', 'Domaine (ex. Réseau)', x && x.domaine); champ('items', 'Compétences, séparées par des virgules', x && x.items.join(', ')); }
+  else if (genre === 'projet') { champ('titre', 'Titre (pour les lettres)', x && x.titre); champ('court', 'Titre court (pour la carte)', x && x.court); champ('quand', 'Quand (ex. Perso · 2026)', x && x.quand);
+    champ('resume', 'En une ou deux phrases', x && x.resume, true); champ('technos', 'Outils, séparés par des virgules', x && (x.technos || []).join(', '));
+    champ('article', 'L’article (une ligne vide entre deux paragraphes)', x && (x.article || []).join('\n\n'), true); champ('appris', 'Ce que ça m’a appris', x && x.appris); }
+  else if (genre === 'langue' || genre === 'autre') champ('texte', nom, x);
+  else { champ('titre', 'Titre', x && x.titre); champ('lieu', genre === 'certificat' ? 'Organisme' : 'Lieu', x && x.lieu); champ('periode', 'Quand (ex. 2025)', x && x.periode); champ('detail', 'Détails', x && x.detail, true); }
+  const act = el('div', 'actions');
+  act.append(bouton('Enregistrer', 'pri', () => {
+    const v = k => champs[k].value.trim(), liste2 = s => s.split(',').map(t => t.trim()).filter(Boolean);
+    let n;
+    if (genre === 'competence') n = {domaine: v('domaine') || 'Autres', items: liste2(v('items'))};
+    else if (genre === 'projet') n = {titre: v('titre'), court: v('court'), quand: v('quand'), resume: v('resume'), technos: liste2(v('technos')),
+                                      article: v('article').split(/\n\s*\n/).map(t => t.trim()).filter(Boolean), appris: v('appris')};
+    else if (genre === 'langue' || genre === 'autre') n = v('texte');
+    else n = {titre: v('titre'), lieu: v('lieu'), periode: v('periode'), detail: v('detail')};
+    if (!(typeof n === 'string' ? n : n.titre || n.domaine)) { toast('Écris au moins un titre.'); return; }
+    if (x == null) liste.push(n); else liste[index] = n;
+    $('fen').close(); sauver();
+  }));
+  if (x != null) act.append(bouton('Retirer', 'danger', () => { if (!confirm('Retirer cet élément ? (la version d’avant reste gardée)')) return; liste.splice(index, 1); $('fen').close(); sauver(); }));
+  b.append(act, el('p', 'dim', 'Gardé sur ton PC. Les lettres de motivation utilisent seulement ce qui est écrit ici.'));
+}
+function modif(genre, i) { const b = el('button', 'modif', 'Modifier'); b.type = 'button'; b.onclick = () => editer(genre, i); return b; }
+function section(titre, genre) {
+  const s = el('section', 'section-moi'), h = el('h2', '', titre);
+  h.append(bouton('+ Ajouter', 'petit', () => editer(genre))); s.append(h); return s;
+}
+function carte(genre, i, titre, texte, puces, quand) {
+  const c = el('article', 'c-moi'); c.append(el('b', '', titre));
+  if (quand) c.append(el('span', 'quand dim', quand));
+  if (texte) c.append(el('p', '', texte));
+  if (puces && puces.length) { const p = el('div', 'puces-moi'); puces.forEach(x => p.append(el('span', '', x))); c.append(p); }
+  c.append(modif(genre, i)); return c;
+}
+/* Mission 12 : le magazine. Page 1 = le portrait ; pages 2 et 3 = textes validés dans Décisions (moi.json → magazine). */
+let pageMag = 0;
+const PORTRAIT = {rub: 'Le portrait', titre: 'Alex, technicien qui aime comprendre.', cols: [
+  'Alex Martin est un personnage inventé pour la démo : ses études, son stage et ses projets sont fictifs.',
+  'Ce qui le décrit le mieux : il ne se contente pas que ça marche. Il veut comprendre pourquoi, et il note ce qu’il apprend.',
+  'Chez lui, il s’entraîne sur un petit labo réseau : un pare-feu, deux VLAN, un serveur Linux et des sauvegardes qu’il teste vraiment.'],
+  citation: '« Une sauvegarde qu’on n’a jamais restaurée, ce n’est pas une sauvegarde. »'};
+function pagesMag() {
+  const mag = MOI.magazine || {}, lire = (n, rub) => { const x = mag[n]; if (!x) return {rub, attente: true};
+    const parts = x.texte.split(/\n\s*\n/).map(t => t.trim()).filter(Boolean), cit = /^«/.test(parts[parts.length - 1] || '') ? parts.pop() : '';
+    return {rub: x.titre || rub, titre: parts[0] || '', cols: parts.slice(1, 4), citation: cit}; };
+  return [PORTRAIT, lire('2', 'Ce qu’il cherche'), lire('3', 'Comment il travaille')];
+}
+function magazine() {
+  const pages = pagesMag(), pg = pages[pageMag], sec = el('section', 'mag'); sec.id = 'mag'; sec.setAttribute('aria-label', 'Le magazine : page ' + (pageMag + 1) + ' sur 3');
+  const prec = el('button', 'fl', '←'), suiv = el('button', 'fl suiv', '→'); prec.type = suiv.type = 'button';
+  prec.setAttribute('aria-label', 'Page précédente'); suiv.setAttribute('aria-label', 'Page suivante');
+  const page = el('div', 'page-mag'); page.setAttribute('aria-live', 'polite');
+  const ru = el('div', 'ru'), droite = el('span', '', 'Profil fictif · données inventées · ');
+  const mi = el('button', 'lien-mag', 'Mes infos'); mi.type = 'button'; mi.onclick = infos; droite.append(mi); ru.append(el('span', '', `${pg.rub} · page ${pageMag + 1} sur 3`), droite); page.append(ru);
+  if (pg.attente) { page.append(el('h1', '', pg.rub), el('p', 'attente', 'Texte proposé par Jarvis, en attente de ton accord : valide-le (ou modifie-le) dans Décisions.'));
+    const a = el('p', 'attente'); a.append(lien('Ouvrir Décisions', 'decisions.html', 'lien-bouton')); page.append(a); }
+  else { page.append(el('h1', '', pg.titre)); pg.cols.forEach((t, i) => page.append(el('p', 'col' + (i === 0 ? ' lettrine' : ''), t)));
+    if (pg.citation) page.append(el('blockquote', '', pg.citation)); }
+  const aller = d => { pageMag = (pageMag + d + 3) % 3; const m = magazine(); $('mag').replaceWith(m); m.querySelector(d > 0 ? '.suiv' : '.fl').focus(); };
+  prec.onclick = () => aller(-1); suiv.onclick = () => aller(1);
+  sec.onkeydown = e => { if (e.key === 'ArrowRight') aller(1); if (e.key === 'ArrowLeft') aller(-1); };
+  sec.append(prec, page, suiv); return sec;
+}
+/* Une seule liste de projets (donnees\moi.json) : les cartes, les articles ET les lettres de motivation. */
+function article(p, i) {
+  const b = fenetre(p.court || p.titre), a = el('div', 'article');
+  a.append(el('p', 'dim', [p.quand, (p.technos || []).join(' · ')].filter(Boolean).join(' · ')), ...((p.article || []).length ? p.article : [p.resume]).map(t => el('p', '', t)));
+  if (p.appris) { const ap = el('p', 'appris'); ap.append(el('b', '', 'Ce que ça m’a appris : '), p.appris); a.append(ap); }
+  const act = el('div', 'actions'); act.append(bouton('Modifier ce projet', '', () => editer('projet', i)));
+  a.append(act, el('p', 'dim', 'Les lettres de motivation utilisent le titre et le résumé de ce projet.'));
+  b.append(a);
+}
+/* La frise (maquette MoiH) : chaque point est CHERCHÉ dans moi.json (formation, expériences, projets) ; s'il n'y est pas, il
+   n'apparaît pas. Couleurs : gris = études, bleu = technique / réseau, jaune = BTS, vert = emploi, orange = IA. */
+const FRISE = [['formation', /^bac/i, 'Bac', '#7a6548'], ['formation', /bts/i, 'BTS', '#7a6548'], ['experiences', /stage/i, 'Stage', '#3a4a8c'],
+  ['projets', /labo/i, 'Labo réseau', '#c9971f'], ['projets', /sauvegard/i, 'Sauvegardes', '#3a4a8c'],
+  ['projets', /site/i, 'Site vitrine', '#2f6b3d']];
+const GENRE_DE = {formation: 'formation', experiences: 'experience', projets: 'projet'};
+const annee = x => { const a = String(x.periode || x.quand || '').match(/\d{4}/g) || []; return a.length > 1 ? `${a[0]}–${a[a.length - 1].slice(2)}` : a[0] || ''; };
+let pointChoisi = null;
+function pointsFrise() {
+  const pris = new Set(), out = [];
+  for (const [liste, re, nom, c, re2] of FRISE) {
+    const L = MOI[liste] || [], i = L.findIndex((x, j) => !pris.has(liste + j) && re.test([x.titre, x.court, x.lieu].join(' ')));
+    if (i < 0) continue; pris.add(liste + i);
+    const j = re2 ? L.findIndex(x => re2.test([x.titre, x.court].join(' '))) : -1; if (j >= 0) pris.add(liste + j);
+    out.push({liste, i, nom, c, x: L[i], avec: j >= 0 ? [j, L[j]] : null});
+  }
+  return out;
+}
+/* Mission 14 : la frise comme en Mission 8. Un clic déplie la fiche SOUS la frise (encadrée de la couleur du point) ; re-clic la referme.
+   Rien d'inventé : genre et date, titre, détails et compétences viennent de moi.json. */
+function ficheMoi(pt) {
+  const {liste, i, x, c} = pt, f = el('section', 'fiche-moi'); f.style.setProperty('--c', c); f.setAttribute('aria-live', 'polite');
+  const semaines = /(\d+)\s*semaines/.exec(x.titre || ''), quand = String(x.quand || '');
+  const genre = liste === 'projets' ? (/bts/i.test(quand) ? 'Projet de BTS' : /perso/i.test(quand) ? 'Projet perso' : 'Projet')
+    : liste === 'experiences' ? 'Expérience' : 'Études';
+  f.style.setProperty('--sur-c', CLAIR[c] ? '#241c14' : '#ffffff');
+  const g = el('div', 'bandeau');
+  g.append(el('span', 'k glisse', [genre, semaines && semaines[1] + ' semaines', annee(x)].filter(Boolean).join(' · ')),
+    el('h3', 'glisse', liste === 'projets' ? (x.accroche || x.titre) : liste === 'experiences' ? 'Stage chez ' + (x.lieu || '') : `${(x.titre || '').replace(/\s*\(.*\)/, '')}${x.lieu ? ' — ' + x.lieu : ''}`));
+  g.lastChild.style.animationDelay = '.06s';
+  const faits = (liste === 'projets' ? String(x.resume || '').split(/\s*[;:]\s*/) : String(x.detail || '').split(/\s*;\s*/))
+    .concat(pt.avec ? [pt.avec[1].resume] : []).map(t => (t || '').replace(/\.$/, '')).filter(Boolean);
+  const d = el('div', 'droite'), ul = el('ul');
+  faits.forEach((t, k) => { const li = el('li', 'glisse', t.charAt(0).toUpperCase() + t.slice(1)); li.style.animationDelay = (.1 + k * .07) + 's'; ul.append(li); });
+  const fe = el('button', 'fermer', '×'); fe.type = 'button'; fe.setAttribute('aria-label', 'Fermer la fiche'); fe.onclick = () => { pointChoisi = null; redessiner(); };
+  d.append(ul, fe);
+  const tags = liste === 'projets' ? [...new Set([...(x.technos || []), ...((pt.avec && pt.avec[1].technos) || [])])] : (x.competences || []);
+  const comp = el('div', 'comp');
+  if (tags.length) { comp.append(el('b', '', 'Compétences')); tags.forEach(t => comp.append(el('span', 'p', t))); }
+  const m = el('button', 'modif-l', 'Modifier'); m.type = 'button'; m.onclick = () => editer(GENRE_DE[liste], i); comp.append(m); d.append(comp);
+  f.append(g, d); return f;
+}
+const CLAIR = {'#c9971f': 1, '#e2733b': 1};  // fonds clairs : texte foncé
+function frise() {
+  const sec = el('section', 'parcours'), pts = pointsFrise(), ol = el('ol', 'frise-l'); sec.id = 'parcours'; sec.setAttribute('aria-label', 'Mon parcours');
+  ol.style.setProperty('--n', pts.length);
+  pts.forEach((p, k) => { const li = el('li'), b = el('button'); b.type = 'button'; b.style.setProperty('--c', p.c);
+    b.setAttribute('aria-expanded', pointChoisi === k); b.append(el('span', 'an', annee(p.x)), el('span', 'pt'), el('b', '', p.nom));
+    b.onclick = () => { pointChoisi = pointChoisi === k ? null : k; if (pointChoisi !== null) projOuvert = null; redessiner(); };
+    li.append(b); ol.append(li); });
+  sec.append(ol);
+  if (pointChoisi !== null && pts[pointChoisi]) sec.append(ficheMoi(pts[pointChoisi]));
+  return sec;
+}
+/* La frise ou un projet changent : on redessine la frise et les projets (le magazine garde sa page) */
+function redessiner() {
+  const faire = () => { $('page').classList.toggle('fiche-ouverte', pointChoisi !== null); $('page').classList.toggle('projet-ouvert', projOuvert !== null);
+    $('parcours').replaceWith(frise()); document.querySelector('.projets').replaceWith(projets()); };
+  if (document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches) document.startViewTransition(faire); else faire();
+}
+/* Mission 12 : les projets en accordéon. Survol = la carte bouge ; clic = elle s'ouvre en grand, les autres se serrent ; re-clic = fermée. */
+const CARTES = [['#151a2e', '#f2b866'], ['#3a4a8c', '#eef0fa'], ['#2f6b3d', '#eef5ee'], ['#c9971f', '#241c14'], ['#e2733b', '#241c14'], ['#6c7393', '#ffffff']];  // une couleur par projet, dans l’ordre
+let projOuvert = null;
+function projets() {
+  const sec = el('section', 'projets'), h = el('div', 'h'), r = el('div', 'rangee-proj' + (projOuvert !== null ? ' une' : '')); sec.setAttribute('aria-label', 'Mes projets');
+  const aide = el('span', '', 'Clique : le projet s’ouvre, les autres se serrent · '); const aj = el('button', 'lien-bouton', '+ Ajouter'); aj.type = 'button'; aj.onclick = () => editer('projet'); aide.append(aj);
+  h.append(el('h2', '', 'Mes projets'), aide);
+  for (const [i, p0] of (MOI.projets || []).slice(0, 6).entries()) {
+    const [fond, texte] = CARTES[i % CARTES.length];
+    const p = p0, o = projOuvert === i, b = el('button', 'proj'); b.type = 'button'; b.setAttribute('aria-expanded', o); b.style.viewTransitionName = 'proj-' + i;
+    const haut = el('span', 'haut'); haut.style.cssText = `background:${fond};color:${texte}`; haut.append(el('span', 'tag', p.quand || ''), el('span', 'nom', p.court || p.titre)); b.append(haut);
+    if (o) { const c = el('span', 'contenu'), art = p.article || [], ligne = (k, v, cls) => { const s = el('span', 'ligne ' + (cls || '')); s.style.animationDelay = (.1 + (ligne.n = (ligne.n || 0) + 1) * .08) + 's'; s.append(el('b', '', k + ' · '), v); return s; };
+      c.append(ligne('Le problème', art[0] || p.resume), ligne('Résultat', p.resultat || p.resume), ligne('Ce que j’ai fait', (art.length > 1 ? art.slice(1) : [p.resume]).join(' '), 'large'));
+      const bas = el('span', 'bas ligne'); bas.style.animationDelay = '.42s'; (p.technos || []).forEach(t => { const s = el('span', 'tags'); s.append(el('span', '', t)); bas.append(s); });
+      if (p.appris) { const e = el('span', 'ent'); e.append(el('b', '', 'En entretien : '), p.appris); bas.append(e); }
+      c.append(bas); b.append(c); }
+    else b.append(el('span', 'accroche', p.accroche || p.resume || ''));
+    b.onclick = () => { projOuvert = o ? null : i; pointChoisi = null; redessiner(); };  // mission 14 : un projet ferme la fiche
+    r.append(b);
+  }
+  sec.append(h, r); return sec;
+}
+/* Les infos détaillées (utilisées pour les lettres) : dans une fenêtre, pour garder la page sur un écran */
+function infos() {
+  const page = fenetre('Mes infos (utilisées pour les lettres)'); page.parentElement.classList.add('large');
+  const act = el('div', 'actions');
+  act.append(bouton('Modifier la présentation', '', () => { const b = fenetre('Ta présentation'), i = el('textarea'); i.value = MOI.accroche || ''; i.setAttribute('aria-label', 'Présentation');
+    b.append(i, bouton('Enregistrer', 'pri', () => { MOI.accroche = i.value.trim(); $('fen').close(); sauver(); })); }),
+    bouton('+ Ajouter quelque chose', 'pri', () => editer('projet')));
+  page.append(el('p', 'accroche', MOI.accroche || ''), act);
+  if ((MOI.a_confirmer || []).length) { const c = el('section', 'confirmer'), ol = el('ol');
+    MOI.a_confirmer.forEach((q, i) => { const li = el('li', '', q); const ok = el('button', 'lien-bouton', 'c’est réglé'); ok.type = 'button';
+      ok.onclick = () => { MOI.a_confirmer.splice(i, 1); $('fen').close(); sauver(); }; li.append(ok); ol.append(li); });
+    c.append(el('h2', '', `${MOI.a_confirmer.length} point${MOI.a_confirmer.length > 1 ? 's' : ''} à confirmer par toi`), ol); page.append(c); }
+  const comp = section('Compétences', 'competence'), gc = el('div', 'cartes-moi');
+  (MOI.competences || []).forEach((d, i) => { const c = carte('competence', i, d.domaine, '', d.items); c.classList.add('domaine-moi'); gc.append(c); });
+  comp.append(gc); page.append(comp);
+  const parc = section('Parcours', 'experience'), fr = el('ol', 'frise');
+  [...(MOI.experiences || []).map((x, i) => ['experience', i, x]), ...(MOI.formation || []).map((x, i) => ['formation', i, x])]
+    .forEach(([g, i, x]) => { const li = el('li'); li.append(carte(g, i, x.titre, x.detail, [], [x.lieu, x.periode].filter(Boolean).join(' · '))); fr.append(li); });
+  parc.append(fr); page.append(parc);
+  const autres = section('Certificats, langues et plus', 'certificat'), ga = el('div', 'cartes-moi');
+  (MOI.certificats || []).forEach((x, i) => ga.append(carte('certificat', i, x.titre, '', [], [x.lieu, x.periode].filter(Boolean).join(' · '))));
+  (MOI.langues || []).forEach((x, i) => ga.append(carte('langue', i, x)));
+  (MOI.autres || []).forEach((x, i) => ga.append(carte('autre', i, x)));
+  autres.append(ga); page.append(autres);
+}
+function afficher() {
+  const page = $('page'), hors = $('hors'); page.replaceChildren(hors);
+  const h = /(projet|point)=(\w+)/.exec(location.hash);  // moi.html#projet=routeur ou #point=2 : ouvert au chargement
+  if (h && h[1] === 'projet') projOuvert = (MOI.projets || []).findIndex(p => new RegExp(h[2], 'i').test(p.titre));
+  page.classList.toggle('fiche-ouverte', pointChoisi !== null); page.classList.toggle('projet-ouvert', projOuvert !== null && projOuvert >= 0);
+  page.append(magazine(), frise(), projets());
+  if (h && h[1] === 'point') $('parcours').querySelectorAll('.frise-l button')[+h[2]]?.click();
+}
+(async () => { try { MOI = await api('/moi'); $('hors').classList.remove('vu'); afficher(); } catch (e) { $('hors').classList.add('vu'); } })();
+</script>
+</body>
+</html>

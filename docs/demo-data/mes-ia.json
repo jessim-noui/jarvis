@@ -1,0 +1,556 @@
+{
+  "ias": [
+    {
+      "id": "e-nemotron-ultra",
+      "nom": "Nemotron 3 Ultra 550B",
+      "modele": "openrouter/nvidia/nemotron-3-ultra-550b-a55b:free",
+      "four": "OpenRouter",
+      "ou": "net",
+      "etat": "repos",
+      "chaines": [
+        "jarvis"
+      ],
+      "ligne": 11,
+      "vit": "",
+      "note": "",
+      "sem": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "e-nemotron-super",
+      "nom": "Nemotron 3 Super 120B",
+      "modele": "nvidia_nim/nvidia/nemotron-3-super-120b-a12b",
+      "four": "NVIDIA",
+      "ou": "net",
+      "etat": "repos",
+      "chaines": [
+        "jarvis"
+      ],
+      "ligne": 13,
+      "vit": "",
+      "note": "",
+      "sem": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "e-gemini-flash",
+      "nom": "Gemini 3.8 Flash",
+      "modele": "gemini/gemini-3.8-flash",
+      "four": "Google",
+      "ou": "net",
+      "etat": "ok",
+      "chaines": [
+        "jarvis",
+        "jarvis-redaction",
+        "jarvis-vision"
+      ],
+      "ligne": 15,
+      "vit": "",
+      "note": "",
+      "sem": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "e-gemini-3.5-flash",
+      "nom": "Gemini 3.5 Flash",
+      "modele": "gemini/gemini-3.5-flash",
+      "four": "Google",
+      "ou": "net",
+      "etat": "repos",
+      "chaines": [
+        "jarvis-vision"
+      ],
+      "ligne": 17,
+      "vit": "",
+      "note": "",
+      "sem": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "e-gemini-lite",
+      "nom": "Gemini Lite",
+      "modele": "gemini/gemini-flash-lite-latest",
+      "four": "Google",
+      "ou": "net",
+      "etat": "repos",
+      "chaines": [
+        "jarvis-rapide",
+        "jarvis-vision"
+      ],
+      "ligne": 19,
+      "vit": "",
+      "note": "",
+      "sem": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "e-vision-nemotron",
+      "nom": "Nemotron 3.5 VL",
+      "modele": "openrouter/nvidia/nemotron-3.5-super-vl:free",
+      "four": "OpenRouter",
+      "ou": "net",
+      "etat": "repos",
+      "chaines": [
+        "jarvis-vision"
+      ],
+      "ligne": 21,
+      "vit": "",
+      "note": "",
+      "sem": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "e-gpt-oss-120b",
+      "nom": "GPT-OSS 120B",
+      "modele": "groq/openai/gpt-oss-120b",
+      "four": "Groq",
+      "ou": "net",
+      "etat": "ok",
+      "chaines": [
+        "jarvis",
+        "jarvis-redaction",
+        "jarvis-rapide"
+      ],
+      "ligne": 23,
+      "vit": "",
+      "note": "",
+      "sem": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "e-gpt-oss-20b",
+      "nom": "GPT-OSS 20B",
+      "modele": "groq/openai/gpt-oss-20b",
+      "four": "Groq",
+      "ou": "net",
+      "etat": "repos",
+      "chaines": [
+        "jarvis-rapide"
+      ],
+      "ligne": 25,
+      "vit": "",
+      "note": "",
+      "sem": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "e-qwen-groq",
+      "nom": "Qwen 3.8 27B",
+      "modele": "groq/qwen/qwen3.8-27b",
+      "four": "Groq",
+      "ou": "net",
+      "etat": "ok",
+      "chaines": [
+        "jarvis-code",
+        "jarvis-rapide"
+      ],
+      "ligne": 27,
+      "vit": "",
+      "note": "",
+      "sem": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "e-mistral-medium",
+      "nom": "Mistral Medium",
+      "modele": "mistral/mistral-medium-latest",
+      "four": "Mistral",
+      "ou": "net",
+      "etat": "ok",
+      "chaines": [
+        "jarvis-redaction"
+      ],
+      "ligne": 29,
+      "vit": "",
+      "note": "",
+      "sem": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "e-ministral-14b",
+      "nom": "Ministral 14B",
+      "modele": "mistral/ministral-14b-latest",
+      "four": "Mistral",
+      "ou": "net",
+      "etat": "repos",
+      "chaines": [
+        "jarvis-redaction"
+      ],
+      "ligne": 31,
+      "vit": "",
+      "note": "",
+      "sem": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "e-mistral-code",
+      "nom": "Mistral Code",
+      "modele": "mistral/mistral-code-latest",
+      "four": "Mistral",
+      "ou": "net",
+      "etat": "ok",
+      "chaines": [
+        "jarvis-code"
+      ],
+      "ligne": 33,
+      "vit": "",
+      "note": "",
+      "sem": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "e-codestral",
+      "nom": "Codestral",
+      "modele": "mistral/codestral-latest",
+      "four": "Mistral",
+      "ou": "net",
+      "etat": "repos",
+      "chaines": [
+        "jarvis-code"
+      ],
+      "ligne": 35,
+      "vit": "",
+      "note": "",
+      "sem": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "e-minimax-flash",
+      "nom": "MiniMax M3.1 Flash",
+      "modele": "openrouter/minimax/minimax-m3.1-flash:free",
+      "four": "OpenRouter",
+      "ou": "net",
+      "etat": "repos",
+      "chaines": [
+        "jarvis-redaction",
+        "jarvis-code"
+      ],
+      "ligne": 38,
+      "vit": "",
+      "note": "",
+      "sem": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "e-local-qwen",
+      "nom": "Qwen3 14B",
+      "modele": "ollama_chat/qwen3:14b",
+      "four": "Ollama (ton PC)",
+      "ou": "pc",
+      "etat": "ok",
+      "chaines": [
+        "jarvis-prive"
+      ],
+      "ligne": 40,
+      "vit": "",
+      "note": "≈ 9 Go de mémoire vidéo",
+      "sem": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "e-oc-gemma4",
+      "nom": "Gemma 4 31B",
+      "modele": "ollama_chat/gemma4:31b-cloud",
+      "four": "Ollama Cloud",
+      "ou": "net",
+      "etat": "repos",
+      "chaines": [],
+      "ligne": 44,
+      "vit": "",
+      "note": "",
+      "sem": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "e-oc-nemotron-super",
+      "nom": "Nemotron 3 Super (cloud)",
+      "modele": "ollama_chat/nemotron-3-super:cloud",
+      "four": "Ollama Cloud",
+      "ou": "net",
+      "etat": "repos",
+      "chaines": [],
+      "ligne": 46,
+      "vit": "",
+      "note": "",
+      "sem": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "e-local-llama",
+      "nom": "Llama 3.1 8B",
+      "modele": "ollama_chat/llama3.1:8b",
+      "four": "Ollama (ton PC)",
+      "ou": "pc",
+      "etat": "repos",
+      "chaines": [
+        "jarvis-prive"
+      ],
+      "ligne": 48,
+      "vit": "",
+      "note": "≈ 5 Go de mémoire vidéo",
+      "sem": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "whisper",
+      "nom": "Whisper",
+      "modele": "faster-whisper",
+      "four": "faster-whisper",
+      "ou": "pc",
+      "etat": "ok",
+      "chaines": [],
+      "ligne": 0,
+      "vit": "",
+      "sem": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "note": "le son en texte (vidéos, entretien)"
+    }
+  ],
+  "chaines": [
+    {
+      "id": "jarvis",
+      "nom": "Jarvis, le chef",
+      "maillons": [
+        "e-gpt-oss-120b",
+        "e-gemini-flash",
+        "e-nemotron-ultra",
+        "e-nemotron-super"
+      ]
+    },
+    {
+      "id": "jarvis-redaction",
+      "nom": "Rédaction (lettres)",
+      "maillons": [
+        "e-mistral-medium",
+        "e-ministral-14b",
+        "e-gpt-oss-120b",
+        "e-minimax-flash",
+        "e-gemini-flash"
+      ]
+    },
+    {
+      "id": "jarvis-code",
+      "nom": "Code",
+      "maillons": [
+        "e-mistral-code",
+        "e-codestral",
+        "e-qwen-groq",
+        "e-minimax-flash"
+      ]
+    },
+    {
+      "id": "jarvis-rapide",
+      "nom": "Rapide (tri des offres, Telegram)",
+      "maillons": [
+        "e-qwen-groq",
+        "e-gpt-oss-120b",
+        "e-gpt-oss-20b",
+        "e-gemini-lite"
+      ]
+    },
+    {
+      "id": "jarvis-vision",
+      "nom": "Vision (images)",
+      "maillons": [
+        "e-gemini-flash",
+        "e-gemini-3.5-flash",
+        "e-gemini-lite",
+        "e-vision-nemotron"
+      ]
+    },
+    {
+      "id": "jarvis-prive",
+      "nom": "Privé (mails, rien ne sort du PC)",
+      "maillons": [
+        "e-local-qwen",
+        "e-local-llama"
+      ]
+    }
+  ],
+  "fournisseurs": [
+    {
+      "nom": "OpenRouter",
+      "desc": "Des IA gratuites de plusieurs marques (celles marquées « :free »), avec une limite par jour.",
+      "cle": "OPENROUTER_API_KEY"
+    },
+    {
+      "nom": "NVIDIA",
+      "desc": "build.nvidia.com : gratuit, avec des crédits.",
+      "cle": "NVIDIA_API_KEY"
+    },
+    {
+      "nom": "Google",
+      "desc": "Gemini gratuit, avec une limite par jour. C’est lui qui regarde les images.",
+      "cle": "GEMINI_API_KEY"
+    },
+    {
+      "nom": "Groq",
+      "desc": "Très rapide, gratuit, avec des limites par minute et par jour.",
+      "cle": "GROQ_API_KEY"
+    },
+    {
+      "nom": "Mistral",
+      "desc": "Gratuit (offre « Experiment »), avec des limites par minute.",
+      "cle": "MISTRAL_API_KEY"
+    },
+    {
+      "nom": "Ollama (ton PC)",
+      "desc": "Le programme qui fait tourner les IA sur ta carte graphique.",
+      "cle": ""
+    },
+    {
+      "nom": "Ollama Cloud",
+      "desc": "En ligne, mais ça passe par Ollama sur ton PC. Certaines de ces IA sont payantes.",
+      "cle": "ton compte ollama.com (ollama signin)"
+    }
+  ],
+  "ollama": false,
+  "gpu": {
+    "vu": false,
+    "raison": "Aucune mesure de démonstration"
+  },
+  "defaut": "",
+  "jours": [
+    "2026-10-17",
+    "2026-10-18",
+    "2026-10-19",
+    "2026-10-20",
+    "2026-10-21",
+    "2026-10-22",
+    "2026-10-23"
+  ],
+  "fichier": "routeur-ia/routeur/config.example.yaml"
+}

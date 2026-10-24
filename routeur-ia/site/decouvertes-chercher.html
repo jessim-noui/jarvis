@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chercher autre chose · Jarvis</title>
+<meta name="description" content="Mises à jour de tes outils, failles qui te concernent, dépôts analysés. Rien ne s'installe tout seul.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8' fill='%23b5561f'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="lib/fonts/fonts.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="suite.css">
+</head>
+<body data-ecran="plus">
+<main class="ecran suite">
+  <div class="tete"><h1>Chercher autre chose</h1><a class="btn" href="decouvertes.html">← Les découvertes à trier</a><span class="dim" id="passe"></span>
+    <button class="btn" id="lancer" type="button">Chercher maintenant</button>
+    <p>Ce qui concerne vraiment Jarvis et ton PC : nouvelles versions de ses outils, failles connues, dépôts analysés. <b>Rien ne s’installe tout seul.</b></p></div>
+  <section class="carte" aria-labelledby="t0"><h2 id="t0">Recherche ciblée pour améliorer Jarvis</h2>
+    <p class="mut">Jarvis cherche chaque semaine de nouvelles IA quand son mode automatique est actif. Le rapport apparaît ici. Tu peux aussi lancer une recherche précise ; chaque piste garde ses sources.</p>
+    <form class="formulaire" id="frech"><label>Ta question<input id="sujet" required minlength="4" maxlength="200" autocomplete="off"></label>
+      <div class="acts" style="align-self:end"><button class="btn pri" id="brech">Chercher</button><button class="btn" type="button" id="ias">Chercher des IA utiles</button></div></form>
+    <div class="liste-cartes" id="pistes"></div></section>
+  <section class="carte" aria-labelledby="t1"><h2 id="t1">Nouvelles fiches</h2><div class="liste-cartes" id="fiches"></div></section>
+  <section class="carte" aria-labelledby="t2"><h2 id="t2">Analyser un dépôt GitHub</h2>
+    <form class="formulaire" id="fdepot"><label>Dépôt (ex. ollama/ollama ou son lien)<input id="depot" required maxlength="120" autocomplete="off"></label>
+      <div class="acts" style="align-self:end"><button class="btn pri">Analyser</button></div></form>
+    <div id="analyse"></div></section>
+  <section class="carte" aria-labelledby="t3"><h2 id="t3">Outils et compétences candidats</h2>
+    <p class="mut">Jarvis lit et vérifie le skill sans l’exécuter. Tu peux ensuite le valider, puis l’installer depuis « Mes skills ».</p>
+    <form class="formulaire" id="fcomp"><label>Vérifier une compétence (dépôt GitHub avec un SKILL.md)<input id="comp" required maxlength="160" autocomplete="off"></label>
+      <div class="acts" style="align-self:end"><button class="btn" id="bcomp">Vérifier</button></div></form>
+    <p class="dim" id="ecomp"></p>
+    <div class="liste-cartes" id="candidats"></div></section>
+</main>
+<script src="app.js"></script>
+<script src="suite.js"></script>
+<script>
+'use strict';
+const ACTIONS = {analyser_plus: 'Analyser plus', feuille_de_route: 'Ajouter à la feuille de route', ignorer: 'Ignorer', ne_plus_source: 'Ne plus suggérer cette source'};
+const SUIVANTS = {decouvert: ['analyse', 'surveille', 'rejete'], analyse: ['prototype', 'surveille', 'rejete'], surveille: ['analyse', 'rejete'],
+  prototype: ['approuve', 'rejete'], approuve: ['integre', 'rejete'], integre: ['desactive'], desactive: ['integre', 'rejete'], rejete: ['analyse']};
+const NOMS = {analyse: 'Analysé', surveille: 'À surveiller', rejete: 'Rejeter', prototype: 'Prototype', approuve: 'Approuver', integre: 'Intégré', desactive: 'Désactiver'};
+function facteurs(sc) {
+  const z = el('div', 'facteurs');
+  (sc.monte || []).forEach(f => z.append(el('span', 'plus', '▲ ' + f)));
+  (sc.baisse || []).forEach(f => z.append(el('span', 'moins', '▼ ' + f)));
+  return z;
+}
+function carteFiche(f) {
+  const c = el('article', 'fiche');
+  const h = el('div', 'haut'); const n = el('span', 'note', String(f.score.note)); n.append(el('small', '', ' /10'));
+  h.append(el('h3', '', f.titre), el('span', 'etat', f.source), n); c.append(h);
+  c.append(el('p', '', f.ce_qui_change), ligneCle('Pour Jarvis', f.pourquoi_jarvis), ligneCle('Conseil', f.recommandation), facteurs(f.score));
+  const pr = el('ul');
+  (f.preuves || []).forEach(p => { const li = el('li'); const u = httpSur(p.lien); if (u) li.append(lien(p.lien.replace(/^https?:\/\//, ''), u, 'lien'));
+    li.append(document.createTextNode([p.version, p.date].filter(Boolean).map(x => ' · ' + x).join(''))); if (p.extrait) li.append(el('div', 'dim', p.extrait)); pr.append(li); });
+  c.append(details('Preuves, risque et coût', ligneCle('Fichiers concernés', f.fichiers_concernes), ligneCle('Bénéfice', f.benefice),
+    ligneCle('Difficulté', f.difficulte), ligneCle('Risque', f.risque), ligneCle('Coût', f.cout), pr,
+    el('p', 'dim', 'Vu pour la première fois ' + heure(f.first_seen))));
+  const a = el('div', 'acts');
+  for (const act of f.actions) a.append(bouton(ACTIONS[act] || act, act === 'feuille_de_route' ? 'pri' : '', async () => {
+    try { await api('/decouvertes2/decider', {id: f.id, action: act}); toast('C’est noté.'); afficher(); } catch (e) { toast(e.message); } }));
+  c.append(a);
+  return c;
+}
+function carteCandidat(k) {
+  const c = el('article', 'fiche'); const h = el('div', 'haut'), comp = k.competence;
+  const etats = comp ? {decouvert: 'découverte', analyse: 'vérifiée', surveille: 'en attente', prototype: 'testée', approuve: 'validée', integre: k.utilisations ? `intégrée · utilisée ${k.utilisations} fois` : 'intégrée', desactive: 'désactivée', rejete: 'rejetée'}
+    : {decouvert: 'découvert', analyse: 'analysé', surveille: 'à surveiller', prototype: 'prototype', approuve: 'approuvé', integre: 'intégré', desactive: 'désactivé', rejete: 'rejeté'};
+  h.append(el('h3', '', k.nom), el('span', 'etat', etats[k.etat] || k.etat)); c.append(h);
+  c.append(ligneCle('Source', k.source), ligneCle('Licence', k.licence), ligneCle('Version', k.version));
+  if (comp) { c.append(ligneCle('Ce qu’elle fait', k.capacites), ligneCle('Risques', (comp.risques || []).join(' ; ') || 'aucun repéré'),
+    ligneCle('Nouveau ?', comp.nouveau ? 'oui, rien de proche dans tes skills' : `ressemble à « ${comp.proche_de} » (${Math.round(comp.ressemblance * 100)} %)`)); }
+  (k.essais || []).slice(-1).forEach(x => c.append(el('p', 'dim', 'Dernier test : ' + x.resume)));
+  const a = el('div', 'acts');
+  if (comp && k.etat === 'analyse') a.append(bouton('Tester au Labo (8 appels)', 'pri', () => lancerEvo('/evolution/competence/tester', {id: k.id}, 'competence', $('ecomp'))));
+  (SUIVANTS[k.etat] || []).forEach(s => a.append(bouton(NOMS[s] || s, s === 'approuve' ? 'pri' : '', async () => {
+    try { await api('/candidats/etat', {id: k.id, etat: s, raison: ''}); afficher(); } catch (e) { toast(e.message); } })));
+  c.append(a);
+  return c;
+}
+async function afficher() {
+  await charger($('fiches'), '/decouvertes2', d => {
+    const r = d.derniere_resultat || {};
+    $('passe').textContent = d.derniere_passe ? 'dernière recherche ' + heure(d.derniere_passe) + ' · ' + (r.nouvelles ?? 0) + ' nouveau(x)' + (r.erreurs?.length ? ' · erreurs : ' + r.erreurs.join(', ') : '') : 'jamais lancé';
+    $('lancer').disabled = d.en_cours; $('lancer').textContent = d.en_cours ? 'Recherche en cours…' : 'Chercher maintenant';
+    const nouv = d.fiches.filter(f => f.statut === 'nouvelle' || f.statut === 'a_analyser');
+    nouv.length ? $('fiches').replaceChildren(...nouv.map(carteFiche)) : vide($('fiches'), 'Rien de neuf qui te concerne. C’est une bonne nouvelle.');
+    d.candidats.length ? $('candidats').replaceChildren(...d.candidats.map(carteCandidat)) : vide($('candidats'), 'Aucun candidat. Analyse un dépôt et garde-le pour l’ajouter ici.');
+  });
+}
+/* Mission 8 : recherche ciblée et compétences — lancées par toi, l'état affiché est celui du serveur (en cours, fini, erreur) */
+async function lancerEvo(chemin, corps, cle, zone, apres) {
+  try { const r = await api(chemin, corps); if (!r.lance) { toast('Déjà en cours : attends la fin.'); return; } } catch (e) { toast(e.message); return; }
+  const suivre = async () => { let d; try { d = await api('/evolution'); } catch (e) { return; } const t = d.travaux[cle] || {};
+    if (t.en_cours) { zone.textContent = 'En cours : ' + (t.etape || '…'); setTimeout(suivre, 3000); return; }
+    zone.textContent = t.erreur ? 'Arrêté : ' + t.erreur : 'Fini à ' + t.fini + '.'; afficher(); if (apres) apres(d, t); };
+  suivre();
+}
+function cartePiste(p) {
+  const f = el('article', 'fiche'), h = el('div', 'haut'); h.append(el('h3', '', p.titre), el('span', 'etat', p.fiabilite || '?'), el('span', 'etat', p.difficulte || '?'));
+  if (p.deja_vue) h.append(el('span', 'etat', 'déjà vue')); f.append(h);
+  f.append(ligneCle('Problème visé', p.probleme), ligneCle('Bénéfice', p.benefice), ligneCle('Risques', p.risques), ligneCle('Comment tester', p.test));
+  const s = el('ul'); p.sources.forEach(x => { const li = el('li'); li.append(httpSur(x.lien) ? lien(x.titre, x.lien, '') : x.titre, ` (${x.type})`); s.append(li); }); f.append(s);
+  return f;
+}
+function montrerRecherche(r) {
+  if (!r) { vide($('pistes'), 'Aucune recherche pour l’instant.'); return; }
+  const tete = el('p', 'dim', `« ${r.sujet} » · ${heure(r.t)} · ${r.nb_sources} sources lues` + (r.erreurs.length ? ' · ' + r.erreurs.join(', ') : ''));
+  const z = [tete, ...(r.pistes.length ? r.pistes.map(cartePiste) : [el('p', 'mut', 'Aucune piste assez solide (avec une source) : rien à proposer.')])];
+  if (r.depots.length) { const d = el('p', 'dim', 'Dépôts trouvés : '); r.depots.forEach((x, i) => { if (i) d.append(' · ');
+    d.append(bouton(x.titre, 'lien-bouton', () => { $('depot').value = x.titre; $('fdepot').requestSubmit(); })); }); z.push(d); }
+  $('pistes').replaceChildren(...z);
+}
+api('/evolution').then(d => montrerRecherche(d.recherches[0])).catch(() => {});
+$('frech').onsubmit = e => { e.preventDefault(); lancerEvo('/evolution/recherche', {sujet: $('sujet').value}, 'recherche', $('pistes'), (d, t) => montrerRecherche(t.resultat || d.recherches[0])); };
+$('ias').onclick = () => { $('sujet').value = 'Nouvelles IA, nouveaux modèles et agents utiles à Jarvis : options compatibles avec son routeur local, capacités, limites, disponibilité et sources officielles.'; $('frech').requestSubmit(); };
+$('fcomp').onsubmit = e => { e.preventDefault(); lancerEvo('/evolution/competence', {depot: $('comp').value}, 'competence', $('ecomp')); };
+$('lancer').onclick = async () => { await api('/decouvertes2/lancer', {}); toast('Recherche lancée (une minute environ).'); setTimeout(afficher, 30000); afficher(); };
+/* Mission 10 : l'analyse d'un dépôt montre son vrai travail, étape par étape (rien n'est installé). */
+function ficheDepot(r) {
+  const c = el('article', 'fiche'), a = r.avis || {}, h = el('div', 'haut');
+  h.append(el('h3', '', r.depot), el('span', 'etat', 'utile : ' + (a.utile || '?') + ' · effort : ' + (a.effort || '?'))); c.append(h);
+  if (a.ce_que_ca_fait) c.append(el('p', '', a.ce_que_ca_fait));
+  if (a.pourquoi) c.append(el('p', 'dim', a.pourquoi));
+  if (a.integration) c.append(ligneCle('Intégration', a.integration));
+  const risques = [...(a.risques || []), ...(r.dangers || [])];
+  c.append(ligneCle('Risques', risques.length ? risques.join(' · ') : 'rien de repéré'));
+  c.append(ligneCle('Failles connues', r.failles.length ? r.failles.map(f => `${f.gravite} : ${f.resume}`).join(' · ') : 'aucun avis de sécurité publié'));
+  c.append(ligneCle('Licence', r.licence), ligneCle('Activité', `dernière modif ${r.dernier_push || '?'} · ${r.issues_ouvertes} issues ouvertes · ${r.etoiles} étoiles`),
+           ligneCle('Releases', r.releases.length ? r.releases.slice(0, 3).map(x => x.version + ' (' + x.date + ')').join(' · ') : 'aucune'),
+           ligneCle('Langages', (r.langages || []).join(', ') || '?'));
+  if (r.injection) c.append(el('p', 'alerte-lien', 'Le README contient un piège pour les IA : il a été traité comme une simple donnée.'));
+  if (r.proposition_creee) c.append(el('p', 'dim', 'Une idée d’amélioration pour Jarvis est dans la boîte à idées.'));
+  c.append(el('p', 'dim', `Rien n’a été installé ni lancé · ${r.requetes} requêtes GitHub · avis : ${r.modele}`));
+  const b = el('div', 'acts'); b.append(bouton('Garder comme candidat', '', async () => { await api('/decouvertes2/depot', {nom: r.depot, garder: true}); toast('Ajouté aux candidats.'); afficher(); }));
+  if (httpSur(r.lien)) b.append(lien('Ouvrir sur GitHub', r.lien)); c.append(b);
+  return c;
+}
+$('fdepot').onsubmit = async e => {
+  e.preventDefault(); const z = $('analyse'); vide(z, 'Préparation…');
+  let id; try { id = (await api('/depot/analyser', {nom: $('depot').value})).id; } catch (err) { vide(z, err.message); return; }
+  const suivre = async () => {
+    let d; try { d = await api('/depot?id=' + encodeURIComponent(id)); } catch (err) { vide(z, err.message); return; }
+    if (d.en_cours) { const l = el('div'); (d.etapes || []).forEach((x, i) => l.append(el('p', i === d.etapes.length - 1 ? '' : 'dim', (i === d.etapes.length - 1 ? '⏳ ' : '✓ ') + x))); z.replaceChildren(l); setTimeout(suivre, 1000); return; }
+    if (d.erreur) { vide(z, 'Erreur : ' + d.erreur); return; }
+    z.replaceChildren(ficheDepot(d.resultat));
+  };
+  suivre();
+};
+afficher();
+</script>
+</body>
+</html>

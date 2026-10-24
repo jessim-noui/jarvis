@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Découvertes · Jarvis</title>
+<meta name="description" content="Une découverte à la fois : pas pour moi, garder, analyser ou je veux. Rien ne se lance tout seul.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8' fill='%23b5561f'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="lib/fonts/fonts.css">
+<link rel="stylesheet" href="app.css">
+<style>
+/* Mission 15, étape 10 : Découvertes triées une à la fois (maquette R_Decouvertes, image 14). La recherche ciblée et l'analyse
+   d'un dépôt : decouvertes-chercher.html (« Chercher autre chose »). Ancienne page : archives/decouvertes_avant_m15p3.html */
+body.dco{height:100vh;overflow:hidden;background:var(--fond);color:var(--encre);font-family:'Work Sans',sans-serif}
+.dco main{position:fixed;inset:var(--nav) 0 0 0;display:grid;grid-template-columns:220px minmax(0,1fr) 330px;gap:24px;padding:18px 28px}
+.tas{display:flex;flex-direction:column;gap:6px;min-height:0}.tas h1{margin:0 0 8px;font:600 28px 'Fraunces',serif}
+.tas button{display:flex;justify-content:space-between;font-size:14.5px;padding:9px 12px;border-radius:12px;background:var(--carte);text-align:left}
+.tas button b{font-family:'JetBrains Mono',monospace}.tas button[aria-pressed=true]{background:var(--encre);color:var(--fond)}.tas button:disabled{cursor:default}
+.tas p{margin:auto 0 0;font-size:12.5px;color:var(--gris2);line-height:1.5}.tas a{font-size:13px;color:var(--brique)}
+.centre{position:relative;display:flex;flex-direction:column;justify-content:center;gap:14px;min-height:0}
+.pile{position:relative;height:340px;margin:10px 14px 18px 0}
+.pile>i{position:absolute;border-radius:24px}.pile>i:nth-child(1){inset:18px -14px -14px 14px;background:var(--fond2)}.pile>i:nth-child(2){inset:9px -7px -7px 7px;background:var(--creux)}
+.carteD{position:absolute;inset:0;background:var(--carte);border-radius:24px;padding:26px 30px;display:flex;flex-direction:column;gap:16px;box-shadow:0 14px 34px rgba(27,35,24,.14);border-top:6px solid var(--c);overflow:auto;animation:arrive .45s cubic-bezier(.16,1,.3,1) both}
+.carteD.sortG{animation:sortG .38s ease-in forwards}.carteD.sortD{animation:sortD .38s ease-in forwards}.carteD.sortB{animation:sortB .38s ease-in forwards}
+@keyframes arrive{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes sortG{to{opacity:0;transform:translateX(-90px) rotate(-4deg)}}@keyframes sortD{to{opacity:0;transform:translateX(90px) rotate(4deg)}}@keyframes sortB{to{opacity:0;transform:translateY(60px)}}
+.l1{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.type{font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:#fff;background:var(--c);border-radius:999px;padding:4px 12px}
+.pos{font:12px 'JetBrains Mono',monospace;color:var(--gris)}
+.carteD h2{margin:0;font:600 32px/1.1 'Fraunces',serif;text-wrap:balance}
+.deux{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.deux b{display:block;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--brique);margin-bottom:4px}.deux span{font-size:15px;line-height:1.5}
+.cout{align-self:flex-start;font-size:13.5px;background:var(--vert-c2);color:var(--vert-a);border-radius:999px;padding:5px 12px}
+.trouve{margin-top:auto;font-size:12px;color:var(--gris);border-top:1px solid var(--fond2);padding-top:10px}
+.boutons{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.boutons button{font-size:15px;border-radius:14px;padding:12px 20px;transition:transform .15s}.boutons button:hover{transform:translateY(-2px)}
+.b-pas{border:1px solid #c2410c!important;color:#c2410c}.b-gar{border:1px solid var(--encre)!important}.b-ana{background:#3a4a8c;color:#fff}.b-veux{background:#2f8a49;color:#fff}
+html[data-theme=sombre] .b-pas{color:#f08a76;border-color:#f08a76!important}
+.clavier{margin:0;text-align:center;font-size:12.5px;color:var(--gris)}
+.raison{display:flex;gap:8px;justify-content:center;align-items:center;font-size:13.5px}.raison input{font:inherit;padding:7px 10px;border-radius:10px;border:1px solid var(--bord);background:var(--carte);color:var(--encre);width:300px}
+.raison button{font-size:13.5px;border-radius:10px;padding:7px 12px;background:var(--encre);color:var(--fond)}
+.fini{flex:1;border-radius:24px;border:2px dashed var(--bord);display:grid;place-items:center;text-align:center;padding:30px}
+.fini b{font:600 30px 'Fraunces',serif}.fini p{color:var(--gris2);max-width:46ch;margin:8px auto 14px;line-height:1.5}
+.fini a{display:inline-block;border:1px solid var(--encre);border-radius:999px;padding:8px 16px;color:var(--encre);text-decoration:none}
+aside.an{background:#1b2318;color:#eef3e8;border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:10px;min-height:0;overflow:auto}
+html[data-theme=sombre] aside.an{background:#1d2029;border:1px solid var(--bord)}
+.an small{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#9fd3a8}
+.an .l{font-size:14.5px;line-height:1.45;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.06);animation:arrive .45s cubic-bezier(.16,1,.3,1) both}
+.an p{margin:0;font-size:14.5px;line-height:1.55;color:#c9d6c3}.an p.n{font-size:13px;color:#a9b7a3;margin-top:6px}
+.an .hist{margin-top:auto;border-top:1px solid #34402f;padding-top:10px;display:flex;flex-direction:column;gap:6px}.an .hist small{color:#8fa58a}.an .hist span{font-size:13px}
+@media (prefers-reduced-motion:reduce){.carteD,.carteD.sortG,.carteD.sortD,.carteD.sortB,.an .l{animation:none}.boutons button{transition:none}}
+@media (max-width:1000px){body.dco{height:auto;overflow:auto}.dco main{position:static;margin-top:var(--nav);grid-template-columns:1fr}.deux{grid-template-columns:1fr}}
+</style>
+</head>
+<body data-ecran="decouvertes" class="dco">
+<main>
+  <nav class="tas" aria-label="Tas">
+    <h1>Découvertes</h1><div id="tas" style="display:contents"></div>
+    <a href="decouvertes-chercher.html">Chercher autre chose →</a>
+    <p>Jarvis cherche une fois par semaine. Il ne garde que ce qui te concerne, et ne remontre jamais ce que tu as refusé.</p>
+  </nav>
+  <section class="centre" aria-label="À trier" id="centre"></section>
+  <aside class="an" aria-label="Analyse de Jarvis" aria-live="polite" id="an"></aside>
+</main>
+<script src="app.js"></script>
+<script>
+'use strict';
+const COUL = {'Outil': '#2f6b3d', 'Nouvelle IA': '#5b5f97', 'Sécurité': '#c2410c', 'Skill': '#b5561f', 'Idée': '#3a4a8c', 'Mise à jour': '#8a5a00'};
+const TAS = [['a_trier', 'À trier'], ['gardee', 'Gardées'], ['acceptee', 'Acceptées'], ['refusee', 'Refusées']];
+let P = null, vue = 'a_trier', i = 0, raison = false, occupe = false;
+const cartes = () => P.cartes.filter(c => c.tas === vue);
+function tas() {
+  const z = $('tas'); z.replaceChildren();
+  for (const [k, nom] of TAS) { const b = bouton('', '', () => { vue = k; i = 0; dessiner(); }); b.className = '';
+    b.setAttribute('aria-pressed', k === vue); b.disabled = !['a_trier', 'gardee'].includes(k); if (b.disabled) b.title = 'Rangées : elles ne reviennent plus ici';
+    b.append(el('span', '', nom), el('b', '', String(P.compte[k] || 0))); z.append(b); }
+}
+function dessiner() {
+  tas(); const z = $('centre'), l = cartes(), c = l[i]; z.replaceChildren(); raison = false;
+  if (!c) { const f = el('div', 'fini'), d = el('div'); d.append(el('b', '', vue === 'gardee' ? 'Rien de gardé.' : 'Tout est trié.'),
+      el('p', '', 'Prochaine recherche : la semaine prochaine. Celles que tu veux sont devenues des propositions dans Décisions.'), lien('Chercher autre chose', 'decouvertes-chercher.html', ''));
+    f.append(d); z.append(f); analyse(null); return; }
+  const p = el('div', 'pile'); p.append(el('i'), el('i'));
+  const a = el('article', 'carteD'); a.style.setProperty('--c', COUL[c.type] || '#2f6b3d');
+  const l1 = el('div', 'l1'); l1.append(el('span', 'type', c.type), el('span', 'pos', `${i + 1} sur ${l.length} · ${c.source}`));
+  const deux = el('div', 'deux'), q = el('div'), ch = el('div');
+  q.append(el('b', '', 'Pourquoi ça te concerne'), el('span', '', c.pourquoi || '—')); ch.append(el('b', '', 'Ce que ça changerait'), el('span', '', c.change || 'Clique Analyser pour le savoir.'));
+  deux.append(q, ch); a.append(l1, el('h2', '', c.titre), deux);
+  if (c.cout) a.append(el('span', 'cout', c.cout));
+  a.append(el('span', 'trouve', c.trouve + ' · source : ' + c.source)); p.append(a);
+  const bs = el('div', 'boutons');
+  for (const [t, cls, fn] of [['✕ Pas pour moi', 'b-pas', demanderRaison], ['Garder pour plus tard', 'b-gar', () => trier('garder')], ['🔍 Analyser', 'b-ana', analyser], ['✓ Je veux', 'b-veux', () => trier('veux')]]) {
+    const b = bouton(t, '', fn); b.className = cls; bs.append(b); }
+  z.append(p, bs, el('p', 'clavier', 'Clavier : ← pas pour moi · ↓ garder · → je veux · A analyser'));
+  analyse(c);
+}
+function demanderRaison() {
+  if (raison) return trier('pas', $('raison').value); raison = true;
+  const r = el('div', 'raison'), inp = el('input'); inp.id = 'raison'; inp.placeholder = 'Pourquoi ? (facultatif)'; inp.maxLength = 200;
+  inp.onkeydown = e => { if (e.key === 'Enter') trier('pas', inp.value); if (e.key === 'Escape') dessiner(); };
+  const ok = bouton('Ne plus me la montrer', '', () => trier('pas', inp.value)); ok.className = '';
+  r.append(inp, ok); document.querySelector('.boutons').after(r); inp.focus();
+}
+function analyse(c) {
+  const z = $('an'); z.replaceChildren(el('small', '', 'Analyse de Jarvis'));
+  if (c && c.analyse) { const a = c.analyse;
+    [['Compatible', a.compatible], ['Gratuit', a.gratuit], ['Gain', a.gain], ['Risque', a.risque], ['Travail', a.travail]].forEach(([k, v], n) => {
+      const d = el('div', 'l', k + ' : ' + v); d.style.animationDelay = n * .12 + 's'; z.append(d); });
+    z.append(el('p', 'n', '« Je veux » ne lance rien : ça devient une proposition dans Décisions, avec ce plan.'));
+  } else if (c) { const p = el('p'); p.append('Clique ', el('b', '', 'Analyser'), ' : Jarvis vérifie si c’est compatible avec ton PC, gratuit, utile, et combien de travail ça demande (1 appel d’IA).'); z.append(p); }
+  const h = el('div', 'hist'); h.append(el('small', '', 'Tes derniers choix'));
+  const mot = {refusee: '✕', gardee: '⏸', acceptee: '✓'};
+  P.choix.length ? P.choix.forEach(x => h.append(el('span', '', mot[x.tas] + ' · ' + x.titre))) : h.append(el('span', '', 'rien pour l’instant'));
+  z.append(h);
+}
+async function trier(choix, r = '') {
+  const c = cartes()[i]; if (!c || occupe) return; occupe = true;
+  try { const a = document.querySelector('.carteD'); if (a && !CALME) { a.classList.add({pas: 'sortG', garder: 'sortB', veux: 'sortD'}[choix]); await new Promise(f => setTimeout(f, 380)); }
+    P = await api('/decouvertes/trier', {id: c.id, choix, raison: r});
+    toast({pas: 'Rangée : je ne te la remontrerai plus.', garder: 'Gardée pour plus tard.', veux: 'C’est une proposition dans Décisions. Rien n’est lancé.'}[choix]);
+    if (i >= cartes().length) i = 0; dessiner();
+  } catch (e) { toast('Petit souci : ' + e.message); dessiner(); } finally { occupe = false; }
+}
+async function analyser() {
+  const c = cartes()[i]; if (!c || c.analyse || occupe) return; occupe = true; $('an').replaceChildren(el('small', '', 'Analyse de Jarvis'), el('p', '', 'Jarvis regarde… (une IA en ligne, quelques secondes)'));
+  try { c.analyse = await api('/decouvertes/analyser', {id: c.id}); } catch (e) { toast(e.message); } finally { occupe = false; }
+  analyse(c);
+}
+addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey || e.altKey || /input|textarea/i.test(e.target.tagName) || document.querySelector('.ck')) return;
+  const k = {ArrowLeft: demanderRaison, ArrowDown: () => trier('garder'), ArrowRight: () => trier('veux'), a: analyser, A: analyser}[e.key];
+  if (k && P && cartes()[i]) { e.preventDefault(); k(); }
+});
+api('/decouvertes/pile').then(d => { P = d; dessiner(); }).catch(e => $('centre').replaceChildren(el('p', 'clavier', 'Jarvis ne répond pas : ' + e.message)));
+</script>
+</body>
+</html>

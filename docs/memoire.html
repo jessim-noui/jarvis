@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mémoire · Jarvis</title>
+<meta name="description" content="Ce que Jarvis sait de toi : corrige ou oublie chaque souvenir. Tout reste sur ton PC.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8' fill='%23b5561f'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="lib/fonts/fonts.css">
+<link rel="stylesheet" href="app.css">
+<style>
+/* Mission 15, étape 12 : ce que Jarvis sait de moi (maquette R_Memoire, image 15). Données : GET /memoire/moi (faits non privés de memoire_db). */
+body.mem{height:100vh;overflow:hidden;background:var(--fond);color:var(--encre);font-family:'Work Sans',sans-serif}
+.mem main{position:fixed;inset:var(--nav) 0 0 0;display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:22px;padding:14px 28px 18px}
+.gauche{display:flex;flex-direction:column;gap:10px;min-height:0}
+.t{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}.t h1{margin:0;font:600 30px 'Fraunces',serif}.t>span{font-size:13.5px;color:var(--gris2)}
+.vue{display:flex;border:1px solid var(--bord);border-radius:999px;overflow:hidden;font-size:13px;align-self:center}
+.vue span,.vue a{padding:6px 14px;color:var(--encre);text-decoration:none}.vue span{background:var(--encre);color:var(--fond)}.vue a:hover{background:var(--creux)}
+.t>a.obs{font-size:13px;color:var(--brique);align-self:center}
+.cols{flex:1;min-height:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.col{display:flex;flex-direction:column;gap:14px;min-height:0;overflow:auto;padding-bottom:4px}
+.grp{flex:none;background:var(--carte);border-radius:18px;overflow:hidden;box-shadow:0 1px 0 var(--bord);display:flex;flex-direction:column}
+.grp>div:first-child{border-top:6px solid var(--c);padding:10px 14px 4px;display:flex;justify-content:space-between;align-items:baseline}
+.grp>div:first-child b{font:600 18px 'Fraunces',serif}.grp>div:first-child span{font:12px 'JetBrains Mono',monospace;color:var(--gris)}
+.fait{display:flex;flex-direction:column;gap:3px;padding:8px 14px;border-top:1px solid var(--creux)}
+.fait>span:first-child{font-size:13.5px;line-height:1.4}.fait.oub{opacity:.7}.fait.oub>span:first-child{text-decoration:line-through;color:var(--gris)}
+.bas{display:flex;align-items:center;gap:4px;flex-wrap:wrap}.bas small{font-size:11.5px;color:var(--gris);flex:1}
+.lienb{font-size:12.5px;text-decoration:underline;padding:2px 4px}.cor{color:#3a4a8c}.oubl{color:#c2410c}
+html[data-theme=sombre] .cor{color:var(--bleu-a)}html[data-theme=sombre] .oubl{color:#f08a76}
+.fait input{font:inherit;font-size:13.5px;padding:7px 9px;border-radius:8px;border:2px solid #3a4a8c;background:var(--carte2);color:var(--encre)}
+.fait .ed{display:flex;gap:6px}.fait .ed button:first-child{font-size:12.5px;background:#3a4a8c;color:#fff;border-radius:8px;padding:5px 10px}
+aside{display:flex;flex-direction:column;gap:12px;min-height:0;overflow:auto}
+.app{background:#1b2318;color:#eef3e8;border-radius:20px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+html[data-theme=sombre] .app{background:#1d2029;border:1px solid var(--bord)}
+.app>small{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#9fd3a8}.app>span{font-size:13px;color:#c9d6c3;line-height:1.45}
+.dev{background:rgba(255,255,255,.06);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;animation:entre .45s cubic-bezier(.16,1,.3,1) both}
+.dev b{font-size:14px;line-height:1.35}.dev>span{font-size:12px;color:#a9b7a3}.dev div{display:flex;gap:6px}
+.dev button{font-size:12.5px;border-radius:999px;padding:5px 12px}.dev .oui{background:#2f8a49;color:#fff}.dev .non{border:1px solid #4b5a45;color:#eef3e8}
+.sert{background:var(--carte);border-radius:20px;padding:16px 18px;display:flex;flex-direction:column;gap:8px;box-shadow:0 1px 0 var(--bord);font-size:13.5px;line-height:1.45}
+.sert>b{font:600 18px 'Fraunces',serif}.sert small{color:var(--gris2);font-size:12.5px;margin-top:4px}
+@keyframes entre{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.dev{animation:none}}
+@media (max-width:1000px){body.mem{height:auto;overflow:auto}.mem main{position:static;margin-top:var(--nav);grid-template-columns:1fr}.cols{grid-template-columns:1fr}.col{overflow:visible}}
+</style>
+</head>
+<body data-ecran="memoire" class="mem">
+<main>
+  <section class="gauche" aria-label="Ce que Jarvis sait de moi">
+    <div class="t"><h1>Ce que Jarvis sait de moi</h1><span id="compte"></span><span style="flex:1"></span>
+      <span class="vue"><span>Liste</span><a href="pilote.html" title="Le graphe des notes de la mémoire">Graphe</a></span>
+      <a class="obs" href="obsidian://open?vault=memoire">Ouvrir dans Obsidian ↗</a></div>
+    <div class="cols" id="cols"></div>
+  </section>
+  <aside aria-label="Appris récemment">
+    <div class="app" aria-live="polite"><small>Appris récemment · à confirmer</small><span>Jarvis ne garde ce qu’il a deviné que si tu dis oui.</span><div id="dev" style="display:contents"></div></div>
+    <div class="sert"><b>Comment Jarvis s’en sert</b>
+      <span><b style="color:var(--bleu-a)">Lettres :</b> seulement « Qui je suis » et tes projets de la page Moi.</span>
+      <span><b style="color:var(--vert-a)">Offres :</b> « Ce que je cherche » trie les offres et calcule les trajets.</span>
+      <span><b style="color:var(--orange-t)">Toujours :</b> tes règles passent avant tout, pour tous les agents.</span>
+      <small>Tout reste sur ton PC (jarvis\donnees). « Oublier » efface pour de vrai après 7 jours ; avant, tu peux annuler.</small></div>
+  </aside>
+</main>
+<script src="demo.js"></script>
+<script src="app.js"></script>
+<script>
+'use strict';
+const COUL = {qui: '#3a4a8c', cherche: '#2f6b3d', regles: '#b5561f', pc: '#5b5f97', autres: '#66695b'};
+const COL = {qui: 0, regles: 2};  // 3 colonnes comme la maquette : les petits groupes (Mon PC, Autres) vont sous « Ce que je cherche »
+let M = null, edit = null;
+async function agir(chemin, corps, msg) {
+  try { M = await api(chemin, corps); if (msg) toast(msg); edit = null; dessiner(); }
+  catch (e) { toast('Petit souci : ' + e.message); }
+}
+function oublier(s, g) {
+  if (g === 'regles' && !confirm('C’est une de tes règles pour Jarvis. Tu veux vraiment qu’il l’oublie ?')) return;
+  agir('/memoire/oublier', {cle: s.cle, confirme: g === 'regles'}, 'Oublié. Tu peux annuler pendant 7 jours.');
+}
+function dessiner() {
+  const z = $('cols'), cols = [0, 1, 2].map(() => el('div', 'col')); z.replaceChildren(...cols); let n = 0, o = 0;
+  for (const g of M.groupes) {
+    const b = el('div', 'grp'), h = el('div'); b.style.setProperty('--c', COUL[g.id] || '#66695b');
+    h.append(el('b', '', g.nom), el('span', '', String(g.souvenirs.filter(s => !s.oublie).length))); b.append(h);
+    for (const s of g.souvenirs) {
+      s.oublie ? o++ : n++;
+      const f = el('div', 'fait' + (s.oublie ? ' oub' : ''));
+      if (edit === s.cle) {
+        const i = el('input'); i.value = s.texte; i.maxLength = 300; i.setAttribute('aria-label', 'Corriger ce souvenir');
+        const ok = () => agir('/memoire/corriger', {cle: s.cle, texte: i.value}, 'Corrigé.');
+        i.onkeydown = e => { if (e.key === 'Enter') ok(); if (e.key === 'Escape') { edit = null; dessiner(); } };
+        const ed = el('span', 'ed'), en = bouton('Enregistrer', '', ok), an = bouton('Annuler', '', () => { edit = null; dessiner(); });
+        en.className = ''; an.className = 'lienb'; ed.append(en, an); f.append(i, ed); b.append(f); setTimeout(() => i.focus()); continue;
+      }
+      const bas = el('span', 'bas'); bas.append(el('small', '', s.oublie ? `oublié · effacé le ${s.jusqu_au}` : s.source));
+      const lb = (t, cls, fn) => { const k = bouton(t, '', fn); k.className = 'lienb ' + cls; return k; };
+      if (s.oublie) bas.append(lb('Annuler (7 jours)', '', () => agir('/memoire/annuler', {cle: s.cle}, 'Remis : Jarvis s’en souvient de nouveau.')));
+      else bas.append(lb('Corriger', 'cor', () => { edit = s.cle; dessiner(); }), lb('Oublier', 'oubl', () => oublier(s, g.id)));
+      f.append(el('span', '', s.texte), bas); b.append(f);
+    }
+    cols[COL[g.id] ?? 1].append(b);
+  }
+  $('compte').textContent = `${n} souvenirs` + (o ? ` · ${o} à oublier` : '') + ' · tous sur ton PC';
+  const d = $('dev'); d.replaceChildren();
+  for (const x of M.a_confirmer) { const c = el('div', 'dev'), bs = el('div');
+    const oui = bouton('C’est vrai, garde', '', () => agir('/memoire/confirmer', {id: x.id, oui: true}, 'Gardé dans « Ce que je cherche ».'));
+    const non = bouton('Non, oublie', '', () => agir('/memoire/confirmer', {id: x.id, oui: false}, 'Oublié, je ne te le redemanderai pas.'));
+    oui.className = 'oui'; non.className = 'non'; bs.append(oui, non); c.append(el('b', '', x.texte), el('span', '', x.src), bs); d.append(c); }
+  if (!M.a_confirmer.length) d.append(el('span', '', 'Rien à confirmer.'));
+}
+api('/memoire/moi').then(d => { M = d; dessiner(); }).catch(e => $('cols').replaceChildren(el('p', '', 'Jarvis ne répond pas : ' + e.message)));
+</script>
+</body>
+</html>

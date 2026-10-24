@@ -1,0 +1,6 @@
+ROUTEUR D'IA - mode d'emploi rapide
+-----------------------------------
+1) Ouvre cles.env avec le Bloc-notes et colle tes 3 cles (Groq, Gemini, Mistral).
+2) Double-clique sur setup.bat (relance-le une 2e fois s'il te le demande).
+3) Double-clique sur run.bat pour demarrer.
+4) Le routeur ecoute sur http://localhost:4000

@@ -1,0 +1,11 @@
+# Routeur d'IA (installe aussi PyYAML)
+litellm[proxy]>=1.103
+PyYAML>=6.0
+# Serveur MCP (mcp_jarvis.py)
+mcp>=2.2
+# Dictée et entretien : Whisper sur le PC (optionnel)
+faster-whisper>=1.2
+numpy>=2.0
+# Lettres en .docx et offres en Excel
+python-docx>=1.2
+openpyxl>=3.1

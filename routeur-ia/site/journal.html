@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Journal · Jarvis</title>
+<meta name="description" content="Tout ce qui s'est passé, jour par jour : ce que Jarvis a fait seul, tes demandes, tes décisions, les problèmes réglés, les missions.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8' fill='%23b5561f'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="lib/fonts/fonts.css">
+<link rel="stylesheet" href="app.css">
+<style>
+/* Mission 15 : le Journal (maquette R_Journal, images 20 et 20b). Remplace l'ancien Journal / Historique (archives/) ; les Rapports ont leur onglet. */
+body.jour-p{height:100vh;overflow:hidden;background:var(--fond);color:var(--encre);font-family:'Work Sans',sans-serif}
+.jour-p main{position:fixed;inset:var(--nav) 0 0 0;display:grid;grid-template-columns:210px minmax(0,1fr) 330px;gap:22px;padding:16px 28px 18px}
+.jours{display:flex;flex-direction:column;gap:6px;min-height:0;overflow:auto}
+.jours h1{margin:0;font:600 30px 'Fraunces',serif}.jours>span{font-size:13px;color:var(--gris2);margin-bottom:6px;line-height:1.4}
+.jour{color:inherit;text-align:left;display:flex;flex-direction:column;gap:1px;border-radius:12px;padding:9px 12px;transition:background .2s}
+.jour:hover{background:var(--carte)}.jour b{font-size:14.5px}.jour span{font-size:12px;color:var(--gris2)}
+.jour[aria-current=true]{background:var(--encre);color:var(--fond)}.jour[aria-current=true] span{color:color-mix(in srgb,var(--fond) 80%,transparent)}
+.centre{display:flex;flex-direction:column;gap:10px;min-height:0}
+.filtres{display:flex;gap:6px;flex-wrap:wrap}
+.filtres button{display:flex;gap:6px;align-items:center;font-size:12.5px;border-radius:999px;padding:5px 11px;border:1px solid var(--bord)}
+.filtres button[aria-pressed=true]{border-color:var(--encre);background:var(--carte)}.filtres i{width:8px;height:8px;border-radius:50%;background:var(--c)}
+.liste{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;flex:1;min-height:0;overflow:auto}
+.ent{color:inherit;text-align:left;width:100%;display:flex;gap:10px;align-items:flex-start;border-radius:12px;padding:8px 10px;transition:background .15s}
+.ent:hover{background:color-mix(in srgb,var(--carte) 60%,transparent)}.ent[aria-current=true]{background:var(--carte);box-shadow:inset 3px 0 0 var(--c)}
+.ent .h{font:12px 'JetBrains Mono',monospace;color:var(--gris);width:42px;flex:none;padding-top:2px}
+.tagj{flex:none;font-size:11px;font-weight:600;color:#fff;background:var(--c);border-radius:6px;padding:2px 7px;margin-top:1px}
+.ent .txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}.ent .txt b{font-size:14px;line-height:1.35;font-weight:600}
+.ent .txt span{font-size:12.5px;color:var(--gris2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ent.annule .txt b{text-decoration:line-through;color:#8b8e80}
+.vide{padding:20px 10px;font-size:14px;color:var(--gris2)}
+.detail{background:var(--carte);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:10px;box-shadow:0 1px 0 var(--bord);min-height:0;overflow:auto}
+.d-sur{font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--c)}
+html[data-theme=sombre] .d-sur{filter:brightness(1.7)}
+.d-t{font:600 23px/1.2 'Fraunces',serif}.d-x{font-size:14px;line-height:1.55;color:var(--encre2)}
+.detail dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:13px}.detail dt{color:var(--gris)}.detail dd{margin:0;overflow-wrap:anywhere}
+.detail dd.mono{font:12px 'JetBrains Mono',monospace}
+.agir{align-self:flex-start;font-size:13.5px;border:1px solid var(--bord);border-radius:10px;padding:8px 14px;transition:background .15s}.agir:hover{background:var(--creux)}
+.agir.fait{color:var(--vert-a)}
+@keyframes entre{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.entre{animation:entre .45s cubic-bezier(.16,1,.3,1) both}
+@media (prefers-reduced-motion:reduce){.entre{animation:none}.ent,.jour,.agir{transition:none}}
+@media (max-width:1000px){body.jour-p{height:auto;overflow:auto}.jour-p main{position:static;margin-top:var(--nav);grid-template-columns:1fr}}
+</style>
+</head>
+<body data-ecran="journal" class="jour-p">
+<main>
+  <nav class="jours" aria-label="Jours" id="jours"><h1>Journal</h1><span>Tout ce qui s’est passé, jour par jour. Rien ne s’efface.</span></nav>
+  <section class="centre" aria-label="Ce jour-là">
+    <div class="filtres" id="filtres"></div>
+    <ol class="liste" id="liste"><li class="vide">Chargement…</li></ol>
+  </section>
+  <aside class="detail" id="detail" aria-label="Détail" aria-live="polite"></aside>
+</main>
+<script src="app.js"></script>
+<script>
+'use strict';
+if (/rapport/.test(location.hash)) location.replace('rapports.html');  // ancienne adresse journal.html#rapport
+const TYPES = {seul: ['Fait seul', '#2f6b3d'], demande: ['Ta demande', '#3a4a8c'], decision: ['Ta décision', '#b5561f'], probleme: ['Problème réglé', '#8a5a00'], mission: ['Mission', '#1b2318']};
+const ACTIONS = {remettre: 'Remettre l’offre', enlever: '✓ Remise · refaire', annuler_decision: '↶ Annuler mon choix', annuler_changement: '↶ Annuler ce changement', annuler_initiative: '↶ Annuler'};
+let EV = [], jour = '', f = 'tout', sel = null;
+const jourDe = t => t.slice(0, 10);
+function nomJour(j) {
+  const d = new Date(j + 'T12:00'), auj = new Date(); auj.setHours(12, 0, 0, 0); const n = Math.round((auj - d) / 86400000);
+  const date = d.toLocaleDateString('fr-FR', {weekday: 'long', day: 'numeric', month: 'long'});
+  return n === 0 ? ['Aujourd’hui', date] : n === 1 ? ['Hier', date] : [date.split(' ')[0].replace(/^./, c => c.toUpperCase()), d.toLocaleDateString('fr-FR', {day: 'numeric', month: 'long'})];
+}
+function jours() {
+  const nav = $('jours'); nav.querySelectorAll('.jour').forEach(x => x.remove());
+  const js = [...new Set(EV.map(e => jourDe(e.t)))];
+  for (const j of js) { const [nom, date] = nomJour(j), n = EV.filter(e => jourDe(e.t) === j).length;
+    const b = bouton('', '', () => { jour = j; sel = null; tout(); }); b.className = 'jour'; b.setAttribute('aria-current', j === jour);
+    b.append(el('b', '', nom), el('span', '', `${date} · ${n} événement${n > 1 ? 's' : ''}`)); nav.append(b); }
+}
+function filtres() {
+  $('filtres').replaceChildren(...[['tout', 'Tout', '#a3a69a'], ...Object.entries(TYPES).map(([k, v]) => [k, v[0], v[1]])].map(([k, n, c]) => {
+    const b = bouton(n, '', () => { f = k; sel = null; tout(); }); b.className = ''; b.setAttribute('aria-pressed', f === k); b.style.setProperty('--c', c); b.prepend(el('i')); return b; }));
+}
+function liste() {
+  const ol = $('liste'); ol.replaceChildren();
+  const es = EV.filter(e => jourDe(e.t) === jour && (f === 'tout' || e.type === f));
+  if (!es.length) { ol.append(el('li', 'vide', f === 'tout' ? 'Rien ce jour-là.' : 'Rien de ce type ce jour-là.')); return; }
+  if (!sel || !es.includes(sel)) sel = es[0];
+  for (const e of es) {
+    const li = el('li'), b = bouton('', '', () => { sel = e; liste(); detail(); }); b.className = 'ent' + (e.annule ? ' annule' : ''); b.setAttribute('aria-current', e === sel);
+    b.style.setProperty('--c', TYPES[e.type][1]);
+    const t = el('span', 'txt'); t.append(el('b', '', (e.annule ? (e.id.startsWith('off-') ? 'Remise · ' : 'Annulé · ') : '') + e.titre), el('span', '', e.pourquoi));
+    b.append(el('span', 'h', e.t.slice(11, 16)), el('span', 'tagj', TYPES[e.type][0]), t); li.append(b); ol.append(li); }
+}
+function detail() {
+  const d = $('detail'); d.replaceChildren(); const e = sel; if (!e) return;
+  const w = el('div', 'entre'); w.style.cssText = 'display:flex;flex-direction:column;gap:10px'; w.style.setProperty('--c', TYPES[e.type][1]);
+  w.append(el('span', 'd-sur', TYPES[e.type][0] + ' · ' + e.t.slice(11, 16)), el('b', 'd-t', (e.annule ? (e.id.startsWith('off-') ? 'Remise · ' : 'Annulé · ') : '') + e.titre));
+  if (e.detail) w.append(el('span', 'd-x', e.detail));
+  const dl = el('dl'), ligne = (k, v, cls) => { dl.append(el('dt', '', k), el('dd', cls || '', v)); };
+  ligne('Pourquoi', e.pourquoi || '—'); ligne('Avec', [e.ia, e.duree != null ? String(e.duree).replace('.', ',') + ' s' : ''].filter(Boolean).join(' · ') || '—');
+  ligne('Trace', e.trace ? e.trace + ' (sans contenu)' : '—', e.trace ? 'mono' : ''); w.append(dl);
+  if (e.action) { const b = bouton(ACTIONS[e.action.quoi] || 'Annuler', '', () => agir(e, b)); b.className = 'agir' + (e.action.quoi === 'enlever' ? ' fait' : ''); w.append(b); }
+  d.append(w);
+}
+async function agir(e, b) {
+  const a = e.action; b.disabled = true;
+  try {
+    if (a.quoi === 'remettre' || a.quoi === 'enlever') await api('/offres/choisir', {id: a.id, quoi: a.quoi});
+    else if (a.quoi === 'annuler_decision') await api('/decisions/rouvrir', {id: a.id});
+    else if (a.quoi === 'annuler_changement') await api('/mini-rapports/annuler', {commit: a.id});
+    else if (a.quoi === 'annuler_initiative') await api('/initiatives/annuler', {id: a.id});  // mission 16
+    toast(a.quoi === 'remettre' ? 'L’offre est remise dans tes offres.' : a.quoi === 'enlever' ? 'L’offre est de nouveau rangée.' : 'C’est annulé : tout est comme avant.');
+    const id = e.id; await charger(); sel = EV.find(x => x.id === id && jourDe(x.t) === jour) || sel; tout();
+  } catch (err) { toast('Petit souci : ' + err.message); b.disabled = false; }
+}
+function tout() { jours(); filtres(); liste(); detail(); }
+async function charger() {
+  try { EV = (await api('/journal/jours')).evenements; }
+  catch (e) { $('liste').replaceChildren(el('li', 'vide', 'Jarvis ne répond pas : ' + e.message)); return; }
+  if (!jour || !EV.some(x => jourDe(x.t) === jour)) jour = EV.length ? jourDe(EV[0].t) : '';
+}
+charger().then(tout);
+</script>
+</body>
+</html>

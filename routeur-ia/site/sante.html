@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Santé de Jarvis</title>
+<meta name="description" content="État des services, des IA, des sauvegardes et des tests.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8' fill='%23b5561f'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="lib/fonts/fonts.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="suite.css">
+<style>
+/* Maquette SanteF : le bulletin des IA (un tableau) + petites pastilles Mails / Sécurité / Sauvegarde / Tests */
+main.ecran{max-width:1240px}
+.tete-s{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between}
+.tete-s h1{font-size:34px}.tete-s .dim{display:block;margin-top:4px}
+.pastilles{display:flex;gap:8px;flex-wrap:wrap;font-size:14px}
+.pastilles a{text-decoration:none;color:var(--txt);background:var(--vert-c);border-radius:999px;padding:6px 12px}
+.pastilles a.att{background:var(--ambre-c);color:var(--ambre-t)}.pastilles a.ko{background:var(--rose);color:var(--rouge)}
+.pastilles a:hover{filter:brightness(.97)}
+.a-regarder{margin-top:16px;padding:12px 16px;border-radius:14px;background:var(--rose);border:1px solid var(--bord-o)}
+/* Mission 15 : l'encart Santé du Pilote (M14) arrive ici ; le détail de chaque IA est dans Mes IA */
+.sante-c{margin-top:18px;background:var(--carte);border:1px solid var(--bord);border-radius:18px;padding:14px 18px;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;font-size:13.5px}
+.sante-c h2{font-size:20px;margin-right:6px}#santeL{display:flex;flex-wrap:wrap;gap:6px;flex:1}.sante-c .co{padding:4px 11px;border-radius:999px;background:var(--vert-c)}.sante-c .co.ko{background:var(--rose);color:var(--rouge)}
+.sante-c .co.lent{background:var(--ambre-c);color:var(--ambre-t)}.sante-c .btn{margin-left:auto}.sante-c .phrase{flex-basis:100%;color:var(--encre2)}
+.pied-s{margin-top:14px;color:var(--mut);font-size:14px}
+details.plus-s{margin-top:22px}
+details.plus-s summary{cursor:pointer;font-weight:600}
+.plus-s .grille-s{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-top:12px}
+</style>
+</head>
+<body data-ecran="sante">
+<main class="ecran">
+  <div class="hors" id="hors">Jarvis est éteint : double-clique sur <b>JARVIS.bat</b>.</div>
+  <div class="tete-s"><div><h1 id="titre">Santé</h1><span class="dim" id="quand"></span></div><nav class="pastilles" id="pastilles" aria-label="État rapide"></nav></div>
+  <div class="a-regarder" id="problemes" hidden></div>
+  <section class="sante-c" id="santeC" aria-live="polite"><h2>En ce moment</h2><span id="santeL" class="vide">…</span>
+    <button type="button" class="btn" id="tester">Tester maintenant</button><span class="phrase" id="santeP"></span></section>
+  <p class="pied-s" id="pied"></p>
+  <details class="plus-s"><summary>Services, sauvegardes, tests et version</summary>
+    <div class="grille-s">
+      <section class="carte" aria-labelledby="t2"><h2 id="t2">Services</h2><div id="services"></div></section>
+      <section class="carte" aria-labelledby="t4"><h2 id="t4">Sauvegardes</h2><div id="sauv"></div></section>
+      <section class="carte" aria-labelledby="t5"><h2 id="t5">Tests et version</h2><div id="tests"></div></section>
+      <section class="carte" aria-labelledby="t6"><h2 id="t6">Ce qui revient souvent (7 jours)</h2><div id="constats"></div></section>
+      <section class="carte" aria-labelledby="t7"><h2 id="t7">Diagnostic du PC</h2><div id="diag"><p class="dim">Chargement…</p></div></section>
+      <section class="carte" aria-labelledby="t8"><h2 id="t8">Gardien de la mémoire</h2><div id="gardien"><p class="dim">Chargement…</p></div></section>
+    </div>
+  </details>
+</main>
+<script src="app.js"></script>
+<script src="suite.js"></script>
+<script>
+'use strict';
+function pastilleLien(txt, url, cls) { const a = el('a', cls || '', txt); a.href = url; return a; }
+async function afficher() {
+  let s; try { s = await api('/sante'); $('hors').classList.remove('vu'); } catch (e) { $('hors').classList.add('vu'); return; }
+  const ias = s.ias || [], actives = ias.filter(m => m.appels), bien = actives.filter(m => m.note >= 10 && m.quota !== 'atteint');
+  $('titre').textContent = actives.length ? `${bien.length} IA sur ${actives.length} vont bien` : 'Aucune IA appelée depuis 24 h';
+  $('quand').textContent = 'Vérifié ' + heure(s.t) + ' · ' + s.resume;
+  $('problemes').hidden = !s.problemes.length; $('problemes').replaceChildren(...s.problemes.map(p => el('p', '', '• ' + p)));
+  $('pied').replaceChildren('Le détail de chaque IA (vitesse, chaîne de secours, appels de la semaine) est dans ', lien('Mes IA', 'mes-ia.html', ''), '.');
+  const p = $('pastilles'); p.replaceChildren();
+  const [etat, al] = await Promise.all([api('/etat').catch(() => ({})), api('/alertes').catch(() => ({compteurs: {}}))]);
+  const ar = etat.a_repondre || 0, nl = (al.compteurs || {}).non_lues || 0, sv = s.sauvegarde || {}, t = s.tests || {};
+  p.append(pastilleLien(ar ? `Mails · ${ar} à répondre` : 'Mails ✓', 'jeu.html#cv', ar ? 'att' : ''),
+    pastilleLien(nl ? `Sécurité · ${nl} à voir` : 'Sécurité ✓', 'alertes.html', nl ? 'att' : ''),
+    pastilleLien(sv.t ? `Sauvegarde ${sv.ok ? '✓' : '✕'} ${sv.t.slice(11, 16)}` : 'Sauvegarde : aucune', '#t4', sv.t && sv.ok ? '' : 'ko'),
+    pastilleLien(t.t ? `Tests ${t.total - t.echecs}/${t.total}` : 'Tests : jamais lancés', '#t5', t.echecs ? 'ko' : ''));
+  $('services').replaceChildren(...s.services.map(x => el('p', '', `${x.ok ? '✓' : '✕'} ${x.nom}${x.ms != null ? ' · ' + x.ms + ' ms' : ''}${x.detail ? ' · ' + x.detail : ''}${x.aide ? ' · ' + x.aide : ''}`)));
+  $('tests').replaceChildren(ligneCle('Derniers tests', t.t ? `${t.total} tests, ${t.echecs} en échec (${heure(t.t)})` : 'jamais lancés depuis cette page'),
+    ligneCle('Version du code', `${s.git.branche} · ${s.git.commit}`),
+    ligneCle('Disque', s.disque.libre_go != null ? `${s.disque.libre_go} Go libres (${s.disque.pourcent_libre} %)` : '—'),
+    (() => { const a = el('div', 'acts'); a.append(bouton('Lancer les tests', '', async () => {
+      await api('/sante/tests', {}); toast('Tests lancés : résultat dans une minute environ.'); setTimeout(afficher, 60000); })); return a; })());
+  await charger($('sauv'), '/sauvegardes', d => {
+    const e = d.etat || {}, z = $('sauv');
+    z.replaceChildren(ligneCle('Dernière', e.t ? `${heure(e.t)} · ${e.ok ? 'vérifiée' : 'ÉCHEC'} · ${e.detail || ''}` : 'aucune'),
+      ...(e.ecartes && e.ecartes.length ? [ligneCle('Laissés de côté', e.ecartes.join(', '))] : []),
+      ligneCle('Gardées', d.liste.map(x => x.nom).join(', ') || 'aucune'),
+      el('p', 'dim', 'Dossier sauvegardes · 7 jours gardés · jamais de clé, ni photo, ni vidéo.'));
+    const a = el('div', 'acts'); a.append(bouton(d.en_cours ? 'Sauvegarde en cours…' : 'Sauvegarder maintenant', '', async () => {
+      await api('/sauvegardes/maintenant', {}); toast('Sauvegarde lancée.'); setTimeout(afficher, 8000); })); z.append(a);
+  });
+  await charger($('constats'), '/ameliorations/constats', d => d.constats.length
+    ? $('constats').replaceChildren(...d.constats.map(c => { const f = el('div', 'fiche'); f.append(el('h3', '', c.titre), el('p', 'mut', c.preuve)); return f; }))
+    : vide($('constats'), 'Aucun problème qui revient.'));
+}
+document.querySelectorAll('.pastilles').forEach(n => n.addEventListener('click', e => { if (e.target.hash) document.querySelector('.plus-s').open = true; }));
+afficher();
+/* Mission 13 : les 10 dernières alertes du gardien (donnees\gardien.json), en phrases simples */
+api('/gardien').then(d => { const z = $('gardien'); z.replaceChildren();
+  if (!d.alertes.length) { z.append(el('p', 'dim', 'Aucune alerte : la mémoire du PC n’a jamais dépassé 80 %. Le gardien tourne depuis le démarrage de Windows.')); return; }
+  for (const a of d.alertes) { const top = (a.programmes || []).slice(0, 3).map(([n, g]) => `${n} ${String(g).replace('.', ',')} Go`).join(', ');
+    z.append(el('p', '', `${a.t.slice(8, 10)}/${a.t.slice(5, 7)} à ${a.t.slice(11, 16)} · mémoire à ${a.memoire} %${a.carte ? ' · carte graphique ' + a.carte : ''} · ${a.fait}${top ? '. Ce qui prenait le plus : ' + top : ''}.`)); }
+}).catch(() => { $('gardien').replaceChildren(el('p', 'dim', 'Indisponible.')); });
+api('/diagnostic').then(d => { const z = $('diag');  // mission 10 : le dernier rapport (lecture seule), lancé depuis Contrôle
+  if (!d.texte) { z.replaceChildren(el('p', 'dim', 'Pas encore de diagnostic : Contrôle → « Diagnostic du PC » → Lancer maintenant.')); return; }
+  const det = el('details'); det.append(el('summary', '', 'Lire le rapport ' + d.nom), el('pre', 'texte-offre', d.texte));
+  const alertes = (d.texte.split(/=== VERDICT ===/)[1] || '').trim().split(/\r?\n/).filter(Boolean).slice(0, 6);
+  z.replaceChildren(...alertes.map(x => el('p', '', x)), det); }).catch(() => {});
+/* Mission 14 (venu du Pilote en M15) : chaque composant (rouge = en panne), et « Tester maintenant » (sonde + une petite question à chaque IA) */
+const NOMS_C = {serveur: 'Serveur', routeur: 'Routeur', ollama: 'IA locale', telegram: 'Telegram', planificateur: 'Planificateur', missions: 'Missions', chat: 'Chat'};
+function encartSante() {
+  const v = window.SANTE; if (!v) return;
+  const l = Object.entries(v.composants || {}).map(([k, c]) => { const ko = c.incident || /muet|injoignable|erreur|refusé|bloquée|délai/.test(c.etat || '');
+    const s = el('span', 'co' + (ko ? ' ko' : c.etat === 'lent' ? ' lent' : ''), (NOMS_C[k] || k.replace('ia:', 'IA ')) + ' · ' + (c.etat || '?'));
+    if (c.incident) s.title = c.incident.description; return s; });
+  $('santeL').replaceChildren(...(l.length ? l : [el('span', 'vide', v.perime ? 'Surveillance indisponible pour le moment.' : 'Pas encore de mesure.')]));
+}
+document.addEventListener('sante', encartSante); encartSante();
+$('tester').onclick = async () => {
+  const b = $('tester'); b.disabled = true; $('santeP').textContent = 'Je teste chaque IA (moins d’une minute)…';
+  try { await api('/sante/tester', {});
+    for (let i = 0; i < 60; i++) { await new Promise(r => setTimeout(r, 2000)); const t = await api('/sante/test');
+      if (!t.en_cours && t.resultat) { $('santeP').textContent = t.resultat.phrase; break; } }
+  } catch (e) { $('santeP').textContent = 'Petit souci : ' + e.message; }
+  b.disabled = false;
+};
+</script>
+</body>
+</html>

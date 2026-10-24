@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Emploi · Jarvis</title>
+<meta name="description" content="Tes offres notées dans tes zones de recherche et le suivi de tes candidatures.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8' fill='%23b5561f'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="lib/fonts/fonts.css">
+<link rel="stylesheet" href="app.css">
+<style>
+main.ecran{max-width:1240px}
+.tete{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.tete h1{font-size:32px;margin-right:auto}
+.onglets{display:flex;gap:4px;padding:4px;border-radius:999px;background:var(--surf);border:1px solid var(--line)}
+.onglets button{padding:8px 16px;border-radius:999px;font-size:14.5px;color:var(--mut)}
+.onglets button[aria-selected=true]{background:var(--sombre);color:var(--bg)}
+.filtres{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+.explique{color:var(--mut);margin-bottom:16px}
+/* À regarder (mission 12) : des cartes simples, groupées Pour toi · À vérifier · Plus loin (replié) */
+.groupe{margin-bottom:22px}.groupe h2{font-size:21px;margin-bottom:10px}.groupe h2 small{font:500 14px 'Inter',sans-serif;color:var(--dim);margin-left:8px}
+.offre{display:flex;flex-direction:column;gap:6px;padding:16px 20px}
+.offre .h{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 14px}
+.offre h3{font-size:18px}.offre h3 button{text-align:left;font:inherit}.offre h3 button:hover{color:var(--acc)}
+.trajet{font-size:14px;font-weight:600;color:var(--vert);white-space:nowrap}.trajet.loin{color:var(--ambre)}
+.offre .exp{font-size:14.5px}.offre .doute{font-size:14.5px;color:var(--ambre)}
+.offre .acts{justify-content:flex-start;margin-top:4px}
+details.groupe > summary{font-family:'Fraunces',serif;font-size:21px;font-weight:700;color:var(--txt);margin-bottom:10px}
+.liste-corb{list-style:none;padding:6px 20px}.liste-corb li{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:12px 0;border-top:1px solid var(--line)}
+.liste-corb li:first-child{border-top:0}.liste-corb li > span:first-child{flex:1 1 300px}
+.liste{display:flex;flex-direction:column;gap:10px}
+.nouv{font-size:11.5px;color:var(--vert);margin-left:6px;font-weight:600}
+.acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+/* Mes candidatures (mission 8, maquette CandidaturesB) */
+.cand-tete{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 14px;margin-bottom:4px}.cand-tete h2{font-size:28px;margin-right:auto}
+.chiffres{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:640px){.chiffres{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.chiffre{text-align:left;background:var(--carte);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:4px;color:var(--txt)}
+.chiffre b{font-family:'Fraunces',serif;font-size:40px;line-height:1}
+.chiffre.attente,.cand-liste.attente{background:var(--statut-attente)}.chiffre.oui,.cand-liste.oui{background:var(--statut-oui)}.chiffre.non,.cand-liste.non{background:var(--statut-non)}
+.chiffre[aria-expanded=true]{outline:3px solid var(--sombre);outline-offset:-3px}
+.cand-liste{background:var(--carte);border-radius:16px;padding:18px 20px}
+.cand-liste .h{display:flex;justify-content:space-between;align-items:baseline;gap:10px}.cand-liste h3{font-size:18px}
+.cand-liste ul{list-style:none;margin-top:10px}
+.cand-liste li{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px 14px;padding:12px 4px;border-top:1px solid var(--bord)}
+.cand-liste li > span:first-child{flex:1 1 280px;min-width:0}
+.cand-liste .dates{font-size:14px;color:var(--mut)}
+.cand-liste .acts{flex-basis:100%;justify-content:flex-start}
+.statuts{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.statuts button{padding:5px 12px;font-size:13.5px;background:var(--carte);color:var(--mut)}.statuts button[aria-pressed=true]{background:var(--sombre);color:var(--bg)}
+.cand-liste textarea{width:100%;min-height:130px;font:inherit;font-size:15px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);margin-top:6px}
+.repart{display:flex;flex-direction:column;gap:8px;padding:14px 16px}
+.barre{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--surf)}
+/* Mission 14 : « À regarder » en liste + détail (maquette E_ListeDetail). Crème var(--fond), vert très foncé var(--encre), vert d'action var(--vert-v),
+   bordures var(--bord) ; Fraunces (titres), Work Sans (texte), JetBrains Mono (trajets, chiffres). CSS : brouillon mistral-code relu. */
+body[data-ecran=emploi]{background:var(--fond);color:var(--encre);font-family:'Work Sans','Inter',sans-serif}
+body[data-ecran=emploi] .tete{flex-direction:column;align-items:stretch;gap:12px}
+body[data-ecran=emploi] .tete h1{font-size:34px}
+.barre-ong{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.barre-ong .ong{font:inherit;font-size:15px;border:1px solid var(--bord);border-radius:999px;padding:8px 14px;background:transparent;color:var(--encre)}
+.barre-ong .ong[aria-selected=true]{background:var(--encre);color:var(--fond);border-color:var(--encre);font-weight:600}
+.zones{margin-left:auto;display:flex;border:1px solid var(--bord);border-radius:999px;overflow:hidden}
+.zones button{font:inherit;padding:7px 14px;background:transparent;color:var(--encre)}.zones button[aria-pressed=true]{background:var(--encre);color:var(--fond)}
+.ld{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.ld-liste{flex:1 1 360px;min-width:0;display:flex;flex-direction:column;gap:8px}
+/* Mission 15 : tout tient sur un écran, la longue liste défile dans sa boîte */
+@media (min-width:901px){.ld-liste,.ld-detail{max-height:calc(100vh - var(--nav) - 250px);overflow:auto;scrollbar-width:thin}.ld-liste{padding:2px}}
+.ld-carte{font:inherit;color:inherit;text-align:left;display:flex;flex-direction:column;gap:4px;padding:14px 16px;border-radius:16px;border:2px solid transparent;
+  background:var(--carte);transition:transform .2s ease,box-shadow .2s ease}
+.ld-carte:hover{transform:translateY(-3px);box-shadow:0 10px 22px rgba(20,30,20,.12)}
+.ld-carte[aria-pressed=true]{border-color:var(--encre)}
+.ld-carte .h{display:flex;justify-content:space-between;gap:8px}.ld-carte b{font-size:15.5px}
+.ld-badge{font-size:12px;font-weight:600;border-radius:999px;padding:2px 9px;white-space:nowrap;align-self:flex-start}
+.ld-badge.ok{color:var(--vert-v);background:var(--vert-c2)}.ld-badge.verif{color:var(--ambre-t);background:var(--ambre-c)}
+.ld-sous{font-size:13.5px;color:var(--gris)}
+.ld-trajet{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gris)}
+.ld-loin{font:inherit;font-size:14px;color:var(--gris);text-decoration:underline;background:none;align-self:flex-start;padding:8px 4px}
+.ld-detail{flex:1.5 1 480px;min-width:0;background:var(--carte);border-radius:20px;padding:24px 26px;display:flex;flex-direction:column;gap:14px;position:sticky;top:80px;animation:ld-entre .4s ease both}
+.ld-etiq{font-size:12.5px;font-weight:600;color:var(--vert-v);text-transform:uppercase;letter-spacing:.08em}.ld-etiq.verif{color:var(--ambre-t)}
+.ld-titre{margin:0;font-family:'Fraunces',serif;font-size:32px;font-weight:600}
+.ld-exp{background:var(--vert-c2);border-radius:14px;padding:14px 16px}.ld-exp.verif{background:var(--ambre-c)}
+.ld-exp b{font-size:12.5px;text-transform:uppercase;letter-spacing:.06em}
+.ld-exp p{margin:6px 0 0;font-family:'Fraunces',serif;font-style:italic;font-size:20px}
+.ld-pastilles{display:flex;gap:12px;flex-wrap:wrap}.ld-pastille{background:var(--fond);border-radius:10px;padding:8px 12px}
+.ld-acts{display:flex;gap:8px;flex-wrap:wrap}
+.ld-acts > *{font:inherit;border-radius:12px;padding:12px 18px;min-height:46px;display:inline-flex;align-items:center;text-decoration:none}
+.ld-postuler{font-weight:600;border:0;background:var(--vert-v);color:var(--sur-accent)}
+.ld-garder{border:1px solid var(--encre);background:transparent;color:var(--encre)}.ld-garder.oui{background:var(--vert-c2)}
+.ld-acts .ld-non{border:0;background:transparent;color:var(--encre);text-decoration:underline}
+.ld-plus{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:14px}
+.ld-deja{margin:0;color:var(--violet);font-weight:600}.ld-doute{margin:0;color:var(--ambre-t)}
+.ld-carte.part{animation:ld-part .35s ease forwards}
+@keyframes ld-part{to{opacity:0;transform:translateX(-120%) rotate(-12deg)}}
+@keyframes ld-entre{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.ld-carte,.ld-carte:hover,.ld-detail,.ld-carte.part{animation:none;transition:none;transform:none}}
+@media (max-width:900px){.ld-detail{position:static}}
+.titre-section{font-family:'Inter',sans-serif;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin:14px 0 4px}
+</style>
+</head>
+<body data-ecran="emploi">
+<main class="ecran">
+  <div class="hors" id="hors">Jarvis est éteint : double-clique sur <b>JARVIS.bat</b>.</div>
+  <div class="tete">
+    <h1>Emploi</h1>
+    <div class="barre-ong">
+      <div class="barre-ong" role="tablist">
+        <button class="ong" role="tab" id="tRegarder" aria-selected="true">À regarder</button>
+        <button class="ong" role="tab" id="tCand" aria-selected="false">Mes candidatures</button>
+        <button class="ong" role="tab" id="tCorb" aria-selected="false">Corbeille</button>
+      </div>
+      <div class="zones" id="filtres" aria-label="Zone"></div>
+    </div>
+  </div>
+  <p class="explique" id="explique"></p>
+  <div class="liste" id="liste" role="tabpanel"></div>
+</main>
+<script src="app.js"></script>
+<script>
+/* Mission 12 : 3 onglets (À regarder · Mes candidatures · Corbeille), filtre zone locale / Sud, une ligne d'explication par onglet. */
+const ONGLETS = {regarder: ['tRegarder', '#offres', 'Les offres lues par Jarvis. Pour toi = dans ta zone locale ou à 30 min max en voiture, les plus proches d’abord.'],
+  cand: ['tCand', '#candidatures', 'Tes candidatures et les réponses lues dans tes mails (sur ton PC). Clique sur un chiffre pour voir la liste.'],
+  lettres: ['tRegarder', '#lettres', 'Les lettres s’écrivent depuis une offre : ouvre-la, puis « Écrire la lettre ». Celles qui sont prêtes sont marquées « Lettre prête ».'],
+  corbeille: ['tCorb', '#corbeille', 'Pas pour toi, enlevées, expirées ou écartées par Jarvis. Rien n’est effacé : « Remettre » la renvoie dans À regarder.']};
+let onglet = /^#(candidatures|refus)/.test(location.hash) ? 'cand' : location.hash.startsWith('#corbeille') ? 'corbeille' : location.hash.startsWith('#lettres') ? 'lettres' : 'regarder';
+let region = ['Zone locale', 'Sud', 'VIE'].includes(memo.lire('emploi_region')) ? memo.lire('emploi_region') : 'Zone locale';
+function choisir(o) { onglet = o;  // mission 15 : « Lettres » (sous-onglet de Ma recherche) = À regarder, avec son explication
+  for (const [k, [id, h]] of Object.entries(ONGLETS)) { if (k !== 'lettres' || o === 'lettres') $(id).setAttribute('aria-selected', k === o || (k === 'regarder' && o === 'lettres')); if (k === o && !(o === 'cand' && location.hash === '#refus')) history.replaceState(null, '', h); }
+  $('explique').textContent = ONGLETS[o][2]; majSous(); afficher(); }
+for (const k in ONGLETS) if (k !== 'lettres') $(ONGLETS[k][0]).onclick = () => choisir(k);
+
+function filtres(d) {
+  const f = $('filtres'); f.replaceChildren();
+  for (const r of ['Zone locale', 'Sud'].concat(d.offres.some(o => o.region === 'VIE') ? ['VIE'] : [])) {
+    const b = el('button', '', r); if (r === 'Sud') b.title = 'Autres villes de la zone Sud';
+    b.type = 'button'; b.setAttribute('aria-pressed', r === region); b.onclick = () => { region = r; memo.ecrire('emploi_region', r); afficher(); }; f.append(b); }
+  /* Mission 14 : les compteurs dans les onglets (À regarder · 5, Mes candidatures · N en attente de réponse, Corbeille · 15) */
+  const n = d.offres.filter(o => o.region === region && !o.rangee && !o.postule && !o.loin && ['pour_toi', 'a_verifier', 'a_lire', 'erreur'].includes(o.etat)).length;
+  $('tRegarder').textContent = `À regarder · ${n}`;
+  if (typeof d.corbeille === 'number') $('tCorb').textContent = `Corbeille · ${d.corbeille}`;
+  api('/candidatures').then(c => { if (c.bilan) $('tCand').textContent = `Mes candidatures · ${c.bilan.attente} en attente de réponse`; }).catch(() => {});
+}
+async function afficher() {
+  const box = $('liste'); box.replaceChildren(el('p', 'dim', 'Chargement…'));
+  try {
+    if (onglet === 'cand') { $('filtres').replaceChildren(); await afficherCandidatures(box); }
+    else { const d = await api('/offres'); filtres(d); onglet !== 'corbeille' ? aRegarder(box, d) : await corbeilleOffres(box); }
+    $('hors').classList.remove('vu');
+  } catch (e) { box.replaceChildren(); $('hors').classList.add('vu'); }
+}
+const ville = o => (o.ville || o.lieu || '').replace(/^\d+ -? ?/, '');
+/* Mission 14 : liste à gauche (titre, badge « pour toi » / « à vérifier », entreprise · ville, trajet · contrat), l'offre en grand à droite.
+   Garde tout ce que la Mission 12 a construit : Pour toi d'abord (gardées puis plus proches), À vérifier, Plus loin (replié), déjà postulé,
+   raisons de « Pas pour moi » (pasPourMoi), lettre et « J'ai postulé » (boutonsCandidature), l'offre en entier (ouvrirOffre). */
+let choisie = memo.lire('emploi_choisie') || '';
+const sansPrefixe = t => (t || '').replace(/^Expérience\s*:\s*/i, '').trim();
+const trajetCourt = o => o.trajet ? o.trajet.replace(/\s*\(estimé\)/, '') : 'trajet inconnu';
+const PAR = {annuel: 'par an', mensuel: 'par mois', horaire: 'de l’heure'};
+function salaire(t) {
+  const n = x => Math.round(+x).toLocaleString('fr-FR');
+  const m = /(Annuel|Mensuel|Horaire) de ([\d.]+) Euros? \S+ ([\d.]+)/i.exec(t || '');
+  if (m) return `${n(m[2])}–${n(m[3])} € ${PAR[m[1].toLowerCase()]}`;
+  const u = /(Annuel|Mensuel|Horaire) de ([\d.]+) Euros?/i.exec(t || '');
+  return u ? `${n(u[2])} € ${PAR[u[1].toLowerCase()]}` : (t || '');
+}
+function aRegarder(box, d) {
+  const ici = d.offres.filter(o => o.region === region && !o.rangee && !o.postule);
+  for (const o of ici) o.doute = o.etat === 'pour_toi' ? (region === 'Zone locale' && !o.trajet ? 'lieu précis inconnu, regarde le trajet' : '') : o.etat === 'a_lire' ? '' : (o.raison || 'à lire en entier');
+  const loin = ici.filter(o => o.loin).sort((a, b) => a.trajet_min - b.trajet_min), proches = ici.filter(o => !o.loin);
+  const pourToi = proches.filter(o => o.etat === 'pour_toi' && !o.doute)
+    .sort((a, b) => (b.gardee ? 1 : 0) - (a.gardee ? 1 : 0) || (a.trajet_min ?? 999) - (b.trajet_min ?? 999));
+  const aVerif = proches.filter(o => !pourToi.includes(o));
+  for (const o of pourToi) o.ok = true;
+  const ld = el('div', 'ld'), liste = el('div', 'ld-liste'), detail = el('div'); detail.style.display = 'contents';
+  const montrer = o => { choisie = o.id; memo.ecrire('emploi_choisie', o.id);
+    for (const c of liste.querySelectorAll('.ld-carte')) c.setAttribute('aria-pressed', c.dataset.id === o.id);
+    detail.replaceChildren(detailOffre(o, liste)); };
+  const ajouter = o => { const c = el('button', 'ld-carte'); c.type = 'button'; c.dataset.id = o.id; c.setAttribute('aria-pressed', 'false');
+    const h = el('span', 'h'), t = el('b', '', o.titre); if (o.nouvelle) t.append(el('span', 'nouv', 'nouvelle'));
+    h.append(t, el('span', 'ld-badge ' + (o.ok ? 'ok' : 'verif'), o.ok ? 'pour toi' : 'à vérifier'));
+    c.append(h, el('span', 'ld-sous', [o.entreprise || 'entreprise non précisée', ville(o)].filter(Boolean).join(' · ')),
+      el('span', 'ld-trajet', `⏱ ${trajetCourt(o)}` + (o.contrat && o.contrat !== 'inconnu' ? ' · ' + o.contrat : '')));
+    c.onclick = () => montrer(o); liste.append(c); };
+  [...pourToi, ...aVerif].forEach(ajouter);
+  if (loin.length) { const b = el('button', 'ld-loin', `Plus loin (plus de 30 min en voiture) · ${loin.length}`); b.type = 'button';
+    b.onclick = () => { b.remove(); loin.forEach(ajouter); }; liste.append(b); }
+  const tous = [...pourToi, ...aVerif, ...loin];
+  box.replaceChildren(tous.length ? ld : el('p', 'mut', 'Aucune offre à regarder ici en ce moment.'));
+  ld.append(liste, detail);
+  if (tous.length) montrer(tous.find(o => o.id === choisie && !o.loin) || tous[0]);
+  const nouv = ici.filter(o => o.nouvelle).map(o => o.id); if (nouv.length) api('/offres/vues', {ids: nouv}).catch(() => {});
+}
+function detailOffre(o, liste) {
+  const a = el('article', 'ld-detail'), v = o.ok ? '' : ' verif';
+  a.append(el('span', 'ld-etiq' + v, (o.ok ? 'Pour toi' : 'À vérifier') + ' · ' + ((o.sources || []).join(' et ') || 'offre')),
+    el('h2', 'ld-titre', o.titre),
+    el('span', '', [o.entreprise || 'entreprise non précisée', ville(o), o.contrat !== 'inconnu' && o.contrat, salaire(o.salaire)].filter(Boolean).join(' · ')));
+  const exp = el('div', 'ld-exp' + v), phrase = sansPrefixe(o.experience_phrase);
+  exp.append(el('b', '', 'Ce que l’offre dit de l’expérience'), el('p', '', phrase ? `« ${phrase} »` : 'L’offre ne dit rien sur l’expérience.'));
+  a.append(exp);
+  if (o.doute) a.append(el('p', 'ld-doute', 'À vérifier : ' + o.doute + '.'));
+  const pa = el('div', 'ld-pastilles'), lettre = el('span', 'ld-pastille', o.lettre ? 'Lettre prête' : 'Pas encore de lettre');
+  pa.append(el('span', 'ld-pastille', `⏱ ${trajetCourt(o)} depuis ton origine locale`), lettre); a.append(pa);
+  api('/offres/detail?id=' + encodeURIComponent(o.id)).then(x => { if (x.lettre_lignes) lettre.textContent = `Lettre prête (${x.lettre_lignes} lignes)`; }).catch(() => {});
+  const act = el('div', 'ld-acts'), carte = liste.querySelector(`[data-id="${o.id}"]`);
+  if (o.postule) a.append(el('p', 'ld-deja', 'Déjà postulé le ' + o.postule.slice(8, 10) + '/' + o.postule.slice(5, 7) + ' : elle ne te sera plus proposée.'));
+  else if (o.lien_etat === 'casse') a.append(el('p', 'ld-doute', 'Cette offre n’est plus en ligne : le site l’a retirée.'));
+  else if (httpSur(o.lien)) { const p = lien('Postuler sur le site de l’offre', o.lien, 'ld-postuler'); p.onclick = () => api('/jeu/xp', {raison: 'offre_ouverte', ref: o.id}).catch(() => {}); act.append(p); }
+  const g = bouton(o.gardee ? 'Gardée ✓' : 'Garder', '', async () => {
+    try { await api('/offres/choisir', {id: o.id, quoi: o.gardee ? 'ne_plus_garder' : 'garder'}); o.gardee = !o.gardee; g.textContent = o.gardee ? 'Gardée ✓' : 'Garder'; g.classList.toggle('oui', o.gardee); }
+    catch (e) { toast(e.message); } });
+  g.className = 'ld-garder' + (o.gardee ? ' oui' : '');
+  const non = bouton('Pas pour moi', '', () => {
+    const partir = () => pasPourMoi(o, afficher);
+    if (!carte || matchMedia('(prefers-reduced-motion: reduce)').matches) return partir();
+    carte.classList.add('part'); carte.addEventListener('animationend', partir, {once: true}); });
+  non.className = 'ld-non'; act.append(g, non); a.append(act);
+  const plus = el('div', 'ld-plus'); if (!o.postule) boutonsCandidature(o, plus, afficher);
+  plus.append(bouton('Lire l’offre en entier', 'lien-bouton', () => ouvrirOffre(o, afficher))); a.append(plus);
+  return a;
+}
+async function corbeilleOffres(box) {
+  const d = await api('/offres/corbeille'), z = r => r === 'Zone secondaire' ? 'Sud' : r;
+  const liste = d.offres.filter(o => z(o.zone) === region), ul = el('ul', 'carte liste-corb');
+  for (const o of liste) { const li = el('li'), t = el('span'); t.append(el('b', '', o.titre), ` · ${o.entreprise || 'entreprise non précisée'}`);
+    li.append(t, el('span', 'dim', o.pourquoi + (o.quand ? ' le ' + o.quand.slice(8, 10) + '/' + o.quand.slice(5, 7) : '')),
+      bouton('Remettre', '', async ev => { ev.target.disabled = true; try { await api('/offres/choisir', {id: o.id, quoi: 'remettre'}); li.remove(); toast('Remise dans À regarder.'); } catch (e) { toast(e.message); ev.target.disabled = false; } }));
+    ul.append(li); }
+  box.replaceChildren(liste.length ? ul : el('p', 'mut', 'La corbeille est vide pour cette zone.'));
+}
+/* Mes candidatures (mission 8, maquette CandidaturesB) : 4 chiffres cliquables qui ne se chevauchent pas (une candidature = un statut),
+   la liste en dessous, la barre, le taux de réponse, « Préparer une relance » après 10 jours sans nouvelles. Un seul calcul : /candidatures → bilan. */
+const COUL = {attente: '--barre-attente', oui: '--barre-oui', non: '--barre-non'}, jm = d => d ? d.slice(8, 10) + '/' + d.slice(5, 7) : '';
+let candOuvert = location.hash.startsWith('#refus') ? 'non' : '';
+async function afficherCandidatures(box) {
+  const d = await api('/candidatures'), b = d.bilan, mails = Object.fromEntries(d.items.map(m => [m.id, m]));
+  const tete = el('div', 'cand-tete');
+  tete.append(el('h2', '', 'Mes candidatures'), el('span', 'dim', `Mise à jour ${(d.maj || '').slice(0, 16).replace('T', ' à ')}`),
+    bouton('Mettre à jour', '', async ev => { ev.target.disabled = true; await api('/services/candidatures', {}).catch(() => {}); toast('Lecture de tes mails en cours (sur ton PC)…'); }));
+  const chiffres = el('div', 'chiffres');
+  for (const [k, n, t] of [['tout', b.envoyees, 'candidatures envoyées'], ['attente', b.attente, 'en attente de réponse'], ['oui', b.oui, 'réponses oui (entretien)'], ['non', b.non, 'réponses non']]) {
+    const c = el('button', 'chiffre ' + k); c.type = 'button'; c.setAttribute('aria-expanded', candOuvert === k);
+    c.append(el('b', '', String(n)), el('span', '', t + ' ▾'));
+    c.onclick = () => { candOuvert = candOuvert === k ? '' : k; afficherCandidatures(box); }; chiffres.append(c);
+  }
+  box.replaceChildren(tete, chiffres);
+  if (candOuvert) {
+    const lignes = b.lignes.filter(x => candOuvert === 'tout' || x.statut === candOuvert);
+    const noms = {tout: `Les ${lignes.length} candidatures envoyées`, attente: `Les ${lignes.length} en attente de réponse`, oui: `Les ${lignes.length} réponses oui`, non: `Les ${lignes.length} réponses non`};
+    const sec = el('section', 'cand-liste ' + candOuvert), h = el('div', 'h'); sec.setAttribute('aria-label', noms[candOuvert]);
+    h.append(el('h3', '', noms[candOuvert]), bouton('Fermer', 'lien-bouton', () => { candOuvert = ''; afficherCandidatures(box); }));
+    const ul = el('ul'); for (const x of lignes) ul.append(ligneCand(x, mails, () => afficherCandidatures(box)));
+    if (!lignes.length) ul.append(el('li', 'dim', 'Aucune pour l’instant.'));
+    sec.append(h, ul); box.append(sec);
+  }
+  const r = el('div', 'carte repart'), barre = el('div', 'barre');
+  barre.setAttribute('role', 'img'); barre.setAttribute('aria-label', `${b.attente} en attente, ${b.oui} oui, ${b.non} non`);
+  for (const k of ['attente', 'oui', 'non']) if (b[k]) { const s = el('span'); s.style.width = (100 * b[k] / b.envoyees) + '%'; s.style.background = `var(${COUL[k]})`; barre.append(s); }
+  const p = el('p', 'dim', `Taux de réponse : ${b.taux} % (oui + non sur ${b.envoyees})`);
+  if (b.a_relancer) { p.append(` · ${b.a_relancer} sans nouvelles depuis 10 jours → `); p.append(bouton('Préparer une relance', 'lien-bouton', () => { candOuvert = 'attente'; afficherCandidatures(box); })); }
+  r.append(el('span', '', `Où en sont mes ${b.envoyees} candidatures`), barre, p); box.append(r);
+}
+function ligneCand(x, mails, apres) {
+  const li = el('li'), t = el('span', x.par === 'mail' ? 'prive' : '');
+  t.append(el('b', '', x.poste || 'Candidature'), ' · ' + (x.entreprise || 'entreprise inconnue') + (x.ville ? ' · ' + x.ville.replace(/^\d+ -? ?/, '') : ''));
+  const dates = [x.reponse && `${x.statut === 'non' ? 'refus' : 'réponse'} lu le ${jm(x.reponse)}`, `${x.par === 'toi' ? 'envoyée' : 'premier mail'} le ${jm(x.envoyee)}`].filter(Boolean).join(' · ');
+  const acts = el('span', 'acts'), st = el('span', 'statuts'); st.setAttribute('aria-label', 'Statut');
+  for (const [v, n] of [['attente', 'en attente'], ['oui', 'oui'], ['non', 'non'], ['auto', 'auto']]) {
+    const s = el('button', '', n); s.type = 'button'; s.setAttribute('aria-pressed', x.manuel ? v === x.statut : v === 'auto');
+    if (v === 'auto') s.title = `Comme le tri de tes mails (${x.auto === 'attente' ? 'en attente' : x.auto})`;
+    s.onclick = async () => { try { await api('/candidatures/statut', {cle: x.cle, statut: v}); toast(v === 'auto' ? 'Statut remis comme le tri des mails.' : 'Statut enregistré. « auto » pour annuler.'); } catch (e) { toast(e.message); } apres(); };
+    st.append(s); }
+  acts.append(st);
+  if (x.offre) acts.append(bouton('Revoir l’offre', '', () => ouvrirOffre(x.offre)));
+  const m = x.mails.map(i => mails[i]).filter(Boolean).pop();
+  if (m && m.action_requise) acts.append(bouton('Répondre', 'pri', () => ouvrirBrouillon(m, apres)));
+  if (m) acts.append(bouton('Lire le mail', '', () => ouvrirFil(m)));
+  if (x.relance) acts.append(bouton('Préparer une relance', '', ev => relance(x, li, ev.target)));
+  li.append(t, el('span', 'dates', dates), acts); return li;
+}
+async function relance(x, li, b) {  // ton IA LOCALE écrit un brouillon : rien ne part, tu le copies et l'envoies toi-même
+  b.disabled = true; const z = el('div'); z.style.flexBasis = '100%'; z.append(el('p', 'dim', 'Ton IA locale écrit une relance courte…')); li.append(z);
+  try {
+    const r = await api('/demander', {profil: 'jarvis-prive', question: `Écris en français un mail de relance très court (70 mots au plus), poli et simple, sans signature personnelle, pour sa candidature au poste « ${x.poste || 'de technicien'} » chez ${x.entreprise || 'cette entreprise'}, envoyée le ${jm(x.envoyee)} et restée sans nouvelles. Pas de formule creuse, jamais « Je me permets » ni « passionné ». Donne seulement le mail.`});
+    const t = el('textarea'); t.value = (r.reponse || '').trim(); t.setAttribute('aria-label', 'Ta relance (modifie-la)');
+    z.replaceChildren(t, el('p', 'dim', 'Rien n’est envoyé : copie-la dans ta messagerie si elle te va.'));
+  } catch (e) { z.replaceChildren(el('p', 'alerte-lien', e.message)); b.disabled = false; }
+}
+const oh = /offre=([\w-]+)/.exec(location.hash);  // emploi.html#offre=ID ouvre directement une offre
+choisir(onglet);
+if (oh) ouvrirOffre(oh[1]);
+</script>
+</body>
+</html>

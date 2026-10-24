@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Décisions · Jarvis</title>
+<meta name="description" content="Une décision à la fois : ce que Jarvis te demande, pourquoi, et ce qui se passe selon ton choix.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8' fill='%23b5561f'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="lib/fonts/fonts.css">
+<link rel="stylesheet" href="app.css">
+<style>
+/* Mission 15 : Décisions, une à la fois (maquette R_Decisions, images 11 et 12). « Fait seul » est parti dans La bibliothèque › Journal. */
+body.dec{height:100vh;overflow:hidden;background:var(--fond);color:var(--encre);font-family:'Work Sans',sans-serif}
+.dec main{position:fixed;inset:var(--nav) 0 0 0;display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:26px;padding:14px 28px 20px;border-top:1px solid var(--bord)}
+.gauche{display:flex;flex-direction:column;gap:12px;min-height:0}
+.t{display:flex;align-items:baseline;gap:14px}.t h1{margin:0;font:600 32px 'Fraunces',serif}.t span{font-size:14px;color:var(--gris2)}
+.carte-d{position:relative;flex:1;min-height:0;background:var(--carte);border-radius:26px;padding:24px 28px;display:flex;flex-direction:column;gap:14px;
+  box-shadow:0 14px 34px rgba(27,35,24,.12);border-left:8px solid var(--c);overflow:auto;animation:arrive .5s cubic-bezier(.16,1,.3,1) both}
+.carte-d.sort{animation:sortD .42s ease-in forwards}
+@keyframes sortD{to{opacity:0;transform:translateX(70px) scale(.97)}}
+@keyframes arrive{from{opacity:0;transform:translateY(22px) scale(.97)}to{opacity:1;transform:none}}
+.haut{display:flex;justify-content:space-between;align-items:center}
+.tag{font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:#fff;background:var(--c);border-radius:999px;padding:4px 12px}
+.temps{font-size:12.5px;color:var(--gris)}
+.carte-d h2{margin:0;font:600 34px/1.12 'Fraunces',serif;max-width:32ch;text-wrap:balance}
+.pq{margin:0;font-size:15px;line-height:1.55;color:var(--encre2);max-width:70ch}.pq b{color:var(--c)}
+html[data-theme=sombre] .pq b{filter:brightness(1.6)}
+.concerne{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.concerne>span{font-size:12.5px;color:var(--gris);margin-right:2px}
+.concerne code{font:12px 'JetBrains Mono',monospace;background:var(--creux);border-radius:6px;padding:3px 8px}
+.tuiles{display:grid;gap:12px}
+.tuile{color:inherit;text-align:left;display:flex;flex-direction:column;gap:8px;border-radius:18px;padding:18px;min-height:170px;background:var(--carte);border:1px solid var(--bord);
+  transition:transform .2s,box-shadow .2s,background .2s,border-color .2s}
+.tuile:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(27,35,24,.12)}
+.tuile.conseil{border:2px solid var(--vert-v)}.tuile.pris{background:var(--vert-c2)}
+.tuile .l1{display:flex;justify-content:space-between;align-items:center;gap:8px}.tuile b{font:600 19px 'Fraunces',serif}
+.touche{font:11.5px 'JetBrains Mono',monospace;border:1px solid var(--bord);border-radius:6px;padding:1px 6px;color:var(--gris)}
+.tuile .x{font-size:14.5px;line-height:1.5;color:var(--gris2);flex:1}
+.etoile{font-size:12.5px;line-height:1.4;background:var(--vert-c2);color:var(--vert-a);border-radius:10px;padding:6px 9px}
+.puces{display:flex;flex-wrap:wrap;gap:8px}
+.puce-c{font-size:14px;border-radius:999px;padding:7px 13px;border:1px solid color-mix(in srgb,var(--vert-a) 35%,transparent);background:var(--vert-c2);color:var(--vert-a);transition:background .2s,color .2s,transform .15s}
+.puce-c:hover{transform:translateY(-2px)}.puce-c[aria-pressed=false]{border-color:#e3c9bd;background:transparent;color:#a58a7e;text-decoration:line-through}
+.valider{display:flex;gap:10px;align-items:center}.valider span{font-size:13px;color:var(--gris2)}
+.b-noir{font-size:15px;border-radius:12px;padding:11px 18px;background:var(--encre);color:var(--fond)}
+.texte-c{width:100%;min-height:140px;font:inherit;font-size:15px;padding:10px 12px;border-radius:12px;border:1px solid var(--bord);background:var(--carte2);color:var(--encre)}
+.bas{margin-top:auto;display:flex;align-items:center;gap:12px;border-top:1px solid var(--fond2);padding-top:12px;flex-wrap:wrap}
+.bas .rien{font-size:13px;color:var(--gris2);flex:1;min-width:240px}
+.plus-tard{font-size:13.5px;border:1px solid var(--bord);border-radius:999px;padding:7px 14px}.plus-tard:hover{background:var(--creux)}
+.expl{font-size:13.5px;text-decoration:underline;color:var(--brique)}
+.explique{position:absolute;left:28px;right:28px;bottom:70px;background:#1b2318;color:#eef3e8;border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.5;box-shadow:0 14px 30px rgba(0,0,0,.25);animation:glisseD .5s cubic-bezier(.16,1,.3,1) both}
+.clavier{font-size:12.5px;color:var(--gris);text-align:center}
+.fini{flex:1;border-radius:26px;background:#1b2318;color:#eef3e8;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:12px;padding:40px 48px;animation:arrive .5s cubic-bezier(.16,1,.3,1) both}
+.fini small{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#9fd3a8}.fini b{font:600 44px/1.05 'Fraunces',serif}.fini span{font-size:15px;color:#c9d6c3}
+.droite{display:flex;flex-direction:column;gap:12px;min-height:0;overflow:hidden}
+.boite-d{display:flex;flex-direction:column;gap:12px;min-height:0;overflow:auto;flex:0 1 auto}
+.droite h2{margin:0;font:600 20px 'Fraunces',serif}
+.avenir{color:inherit;text-align:left;display:flex;flex-direction:column;gap:4px;border:1px solid var(--bord);background:var(--carte);border-radius:14px;padding:10px 12px;transition:transform .15s,box-shadow .2s}
+.avenir:hover{transform:translateX(-3px);box-shadow:0 8px 18px rgba(27,35,24,.1)}
+.avenir .l1{display:flex;justify-content:space-between;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase}.avenir .l1 b{color:var(--c)}.avenir .l1 span{color:var(--gris)}
+.avenir>span:last-child{font-size:13.5px;line-height:1.4}
+.vide{font-size:13.5px;color:var(--gris2);line-height:1.45}
+.decide{display:flex;gap:10px;align-items:center;font-size:13.5px;background:var(--creux);border-radius:12px;padding:8px 10px;animation:glisseD .5s cubic-bezier(.16,1,.3,1) both}
+.decide span{flex:1;line-height:1.35}.decide button{font-size:12.5px;border:1px solid var(--bord);background:var(--carte);border-radius:999px;padding:3px 10px}
+@keyframes glisseD{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+.ligne-j{margin:auto 0 0;font-size:13px;color:var(--gris2);line-height:1.5;border-top:1px solid var(--bord);padding-top:10px}
+@media (prefers-reduced-motion:reduce){.carte-d,.carte-d.sort,.decide,.explique,.fini{animation:none}.tuile,.puce-c,.avenir{transition:none}}
+@media (max-width:1000px){body.dec{height:auto;overflow:auto}.dec main{position:static;margin-top:var(--nav);grid-template-columns:1fr}.tuiles{grid-template-columns:1fr!important}}
+</style>
+</head>
+<body data-ecran="decisions" class="dec">
+<main>
+  <section class="gauche" aria-label="À décider">
+    <div class="t"><h1>Décisions</h1><span>Une à la fois. Je ne te demande que ce qui compte.</span></div>
+    <div id="zone" style="display:contents"></div>
+  </section>
+  <aside class="droite" aria-label="À venir et tes choix">
+    <h2>À venir</h2><div id="avenir" style="display:contents"></div>
+    <h2 style="margin-top:8px">Tu as décidé</h2><div id="decides" class="boite-d"></div>
+    <p class="ligne-j" id="ligneJ"></p>
+  </aside>
+</main>
+<script src="demo.js"></script>
+<script src="app.js"></script>
+<script>
+'use strict';
+/* Catégorie (si la décision n'en a pas) : d'après son sujet. Couleurs de la maquette. */
+const CATS = [['mes-ia', 'Mes IA', '#3a4a8c'], ['moi-', 'Ta page Moi', '#2f6b3d'], ['regle-offres', 'Tes offres', '#b5561f'], ['reparation', 'Réparations', '#8a5a00'],
+  ['amelioration', 'Améliorer Jarvis', '#5b5f97'], ['question', 'Ta question', '#3a4a8c'], ['proposition', 'Proposition', '#5b5f97'], ['pc-demarrage', 'Démarrage du PC', '#8a5a00'],
+  ['claude', 'Claude Code', '#5b5f97'], ['confidentialite', 'Confidentialité', '#c2410c']];
+const COUL = Object.fromEntries(CATS.map(c => [c[1], c[2]]));
+let D = null, cur = null, off = {}, texte = null, expl = false, pris = -1;
+function cat(d) { const c = CATS.find(x => d.sujet.startsWith(x[0])); const nom = d.categorie || (c ? c[1] : 'Jarvis'); return [nom, COUL[nom] || (c ? c[2] : '#1b2318')]; }
+const temps = d => d.temps || (d.items || d.texte !== undefined ? '1 min' : '30 s');
+const septJours = t => Date.now() - new Date(t).getTime() < 7 * 86400000;
+
+function carte() {
+  const z = $('zone'); z.replaceChildren(); expl = false;
+  if (!cur) {
+    const f = el('div', 'fini'); f.append(el('small', '', 'Rien à décider'));
+    const b = el('b'); b.append('Je continue seul.', el('br'), 'Tu peux fermer cette page.'); f.append(b);
+    const p = D.prochaine;
+    f.append(el('span', '', p ? `Prochaine question prévue : ${new Date(p.quand + 'T12:00').toLocaleDateString('fr-FR', {weekday: 'long', day: '2-digit', month: '2-digit'})} — « ${p.question} »` : 'Aucune autre question prévue pour l’instant.'));
+    z.append(f); return; }
+  const d = cur, [nom, c] = cat(d), a = el('article', 'carte-d'); a.style.setProperty('--c', c);
+  const h = el('div', 'haut'); h.append(el('span', 'tag', nom), el('span', 'temps', '⏱ ' + temps(d) + ' pour décider'));
+  const pq = el('p', 'pq'); pq.append(el('b', '', 'Pourquoi je te demande · '), d.pourquoi || 'J’ai besoin de ton avis pour continuer.');
+  a.append(h, el('h2', '', d.questions[0]), pq);
+  for (const q of d.questions.slice(1)) a.append(el('p', 'pq', '+ ' + q));
+  if ((d.concerne || []).length) { const co = el('div', 'concerne'); co.append(el('span', '', 'Concerne')); d.concerne.forEach(x => co.append(el('code', '', x))); a.append(co); }
+  if (d.items) {
+    const p = el('div', 'puces');
+    d.items.forEach(it => { const b = bouton('', '', () => { off[it] = !off[it]; carte(); }); b.className = 'puce-c'; b.setAttribute('aria-pressed', !off[it]);
+      b.textContent = (off[it] ? '✕ ' : '✓ ') + it; p.append(b); });
+    const v = el('div', 'valider'), n = d.items.filter(i => !off[i]).length, b = bouton(`Valider · ${n} gardée${n > 1 ? 's' : ''}`, '', () => repondre(d.options[0].id, {enlever: d.items.filter(i => off[i])}));
+    b.className = 'b-noir'; v.append(b, el('span', '', 'Clique une compétence pour l’enlever (barrée) ou la remettre.')); a.append(p, v);
+  } else {
+    if (d.texte !== undefined) { const t = el('textarea', 'texte-c'); t.value = texte ?? d.texte; t.setAttribute('aria-label', 'Le texte (modifie-le si tu veux)'); t.oninput = () => { texte = t.value; }; a.append(t); }
+    const g = el('div', 'tuiles'); g.style.gridTemplateColumns = `repeat(${Math.min(3, d.options.length)},minmax(0,1fr))`;
+    d.options.slice(0, 3).forEach((o, k) => {
+      const t = bouton('', '', () => choisir(k)); t.className = 'tuile' + (o.id === d.recommande ? ' conseil' : '') + (pris === k ? ' pris' : '');
+      const l = el('span', 'l1'); l.append(el('b', '', o.libelle), el('span', 'touche', String(k + 1)));
+      t.append(l, el('span', 'x', o.avantages || o.risques || o.cout || ''));
+      if (o.id === d.recommande) t.append(el('span', 'etoile', '★ Je te conseille ça' + (d.conseil ? ' · ' + d.conseil : '')));
+      g.append(t); });
+    a.append(g);
+  }
+  const bas = el('div', 'bas'), r = el('span', 'rien'); r.append(el('b', '', 'Si tu ne fais rien : '), d.si_reporte || 'rien ne change pour l’instant ; je te la reposerai.');
+  const pt = bouton('Plus tard (demain)', '', () => repondre('reporter')); pt.className = 'plus-tard';
+  const ex = bouton('Explique-moi plus', '', basculer); ex.className = 'expl'; bas.append(r, pt, ex); a.append(bas);
+  z.append(a, el('span', 'clavier', 'Clavier : 1, 2, 3 pour choisir · P pour plus tard · ? pour l’explication'));
+}
+function basculer() {
+  const a = document.querySelector('.carte-d'); if (!a) return; const e = a.querySelector('.explique');
+  if (e) { e.remove(); return; }
+  a.append(el('div', 'explique', 'En clair : ' + (cur.pourquoi || cur.questions[0]) + ' Tu peux toujours changer d’avis : chaque choix s’annule à droite, dans « Tu as décidé », pendant 7 jours.'));
+}
+function choisir(k) { if (!cur || cur.items || !cur.options[k]) return; pris = k; carte(); repondre(cur.options[k].id, cur.texte !== undefined ? {texte: texte ?? cur.texte} : {}); }
+async function repondre(choix, plus = {}) {
+  const d = cur;
+  try { await api('/decisions/repondre', {id: d.id, choix, ...plus});
+    const a = document.querySelector('.carte-d'); if (a && !CALME) { a.classList.add('sort'); await new Promise(r => setTimeout(r, 420)); }
+    toast(choix === 'reporter' ? 'Je te la repose plus tard.' : 'C’est noté. Tu peux annuler à droite pendant 7 jours.');
+    cur = null; await charger();
+  } catch (e) { toast('Petit souci : ' + e.message); pris = -1; carte(); }
+}
+async function annuler(d) {
+  try { await api('/decisions/rouvrir', {id: d.id}); toast('Annulé : la question revient.'); cur = null; await charger(); }
+  catch (e) { toast('Petit souci : ' + e.message); }
+}
+function droite() {
+  const av = $('avenir'); av.replaceChildren();
+  const autres = D.decisions.filter(x => x !== cur);
+  for (const x of autres) { const [nom, c] = cat(x), b = bouton('', '', () => { cur = x; off = {}; texte = null; pris = -1; carte(); droite(); }); b.className = 'avenir';
+    b.style.setProperty('--c', c); const l = el('span', 'l1'); l.append(el('b', '', nom), el('span', '', temps(x))); b.append(l, el('span', '', x.questions[0])); av.append(b); }
+  if (!autres.length) av.append(el('span', 'vide', cur ? 'Rien après celle-ci.' : 'Rien.'));
+  const de = $('decides'); de.replaceChildren();
+  const faits = D.historique.filter(x => ['repondue', 'reportee'].includes(x.etat) && septJours(x.maj)).reverse();
+  for (const x of faits) { const r = el('div', 'decide'), o = x.options.find(y => y.id === x.choix);
+    const b = bouton('↶ Annuler', '', () => annuler(x)); b.className = ''; r.append(el('span', '', cat(x)[0] + ' : ' + (x.etat === 'reportee' ? 'plus tard' : o ? o.libelle : x.choix)), b); de.append(r); }
+  if (!faits.length) de.append(el('span', 'vide', 'Rien encore. Chaque choix pourra être annulé ici pendant 7 jours.'));
+  const lj = $('ligneJ'); lj.replaceChildren(`Ce que Jarvis a fait seul aujourd’hui (${D.fait_seul} action${D.fait_seul > 1 ? 's' : ''}) est rangé dans `, lien('La bibliothèque › Journal', 'journal.html', ''), '.');
+}
+async function charger() {
+  try { D = await api('/decisions'); } catch (e) { $('zone').replaceChildren(el('p', 'vide', 'Jarvis ne répond pas : ' + e.message)); return; }
+  if (!cur || !D.decisions.some(x => x.id === cur.id)) { cur = D.decisions[0] || null; off = {}; texte = null; pris = -1; }
+  else cur = D.decisions.find(x => x.id === cur.id);
+  carte(); droite();
+}
+addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey || e.altKey || /input|textarea/i.test(e.target.tagName) || document.querySelector('.ck')) return;
+  if (/^[123]$/.test(e.key)) choisir(+e.key - 1);
+  else if (e.key === 'p' || e.key === 'P') { if (cur) repondre('reporter'); }
+  else if (e.key === '?') basculer();
+});
+charger();
+</script>
+</body>
+</html>

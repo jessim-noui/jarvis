@@ -1,0 +1,47 @@
+/* Styles partagés des pages de la suite : mêmes jetons que app.css (bureau chaleureux), rien de neuf à apprendre. */
+main.ecran.suite{max-width:1040px;display:flex;flex-direction:column;gap:18px}
+.suite .tete{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.suite .tete h1{font-size:32px;margin-right:auto}
+.suite .tete p{flex-basis:100%;color:var(--mut)}
+.suite section.carte{padding:20px 22px}
+.suite section.carte>h2{margin-bottom:12px;font-size:21px}
+.suite .vide{padding:8px 0}
+.suite .kv{font-size:14px;color:var(--mut);margin:2px 0}
+.suite .kv b{color:var(--txt);font-weight:600}
+.liste-cartes{display:flex;flex-direction:column;gap:12px}
+.fiche{border:1px solid var(--line);border-radius:var(--r2);background:var(--blanc);padding:16px 18px;display:flex;flex-direction:column;gap:8px}
+.fiche h3{font-size:17px;font-family:'Work Sans',sans-serif;font-weight:600}
+.fiche .haut{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.fiche .haut h3{margin-right:auto}
+.fiche .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.fiche details{font-size:14px;color:var(--mut)}
+.fiche details summary{cursor:pointer;color:var(--lien)}
+.fiche ul{padding-left:18px;font-size:14px;color:var(--mut)}
+.option{border:1px solid var(--line2);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;background:var(--surf)}
+.option.reco{border-color:var(--acc);box-shadow:0 0 0 2px rgba(181,86,31,.12)}
+.option small{color:var(--mut)}
+.options{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
+.etat{display:inline-block;font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;background:var(--surf2);color:var(--mut);white-space:nowrap}
+.etat-ok,.etat-done,.etat-disponible,.etat-termine{background:var(--vert-c);color:var(--vert)}
+.etat-panne,.etat-failed,.etat-erreur{background:var(--rose);color:var(--rouge)}
+.etat-instable,.etat-blocked{background:#f6ecd0;color:var(--ambre)}
+.etat-en_cours,.etat-running{background:#fde5d2;color:var(--acc-h)}
+.note{font-family:'Fraunces',serif;font-size:26px;line-height:1}
+.note small{font-size:13px;color:var(--dim);font-family:'Work Sans',sans-serif}
+.facteurs{display:flex;flex-wrap:wrap;gap:6px;font-size:12.5px}
+.facteurs span{padding:2px 8px;border-radius:999px;background:var(--surf2)}
+.facteurs .plus{background:var(--vert-c);color:var(--vert)}
+.facteurs .moins{background:var(--rose);color:var(--rouge)}
+table.simple{width:100%;border-collapse:collapse;font-size:14px}
+.defile{overflow-x:auto;max-width:100%}
+table.simple th,table.simple td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line3)}
+table.simple th{color:var(--dim);font-weight:600;font-size:12.5px}
+.barres{display:grid;grid-template-columns:110px 1fr 52px;gap:6px 10px;align-items:center;font-size:13.5px}
+.barre{height:10px;border-radius:6px;background:var(--surf2);overflow:hidden}
+.barre i{display:block;height:100%;background:var(--acc);border-radius:6px}
+.barre.var i{background:var(--vert)}
+.formulaire{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.formulaire label{display:flex;flex-direction:column;gap:4px;font-size:13.5px;color:var(--mut)}
+.formulaire input,.formulaire select,.formulaire textarea{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--line2);background:var(--blanc);color:var(--txt)}
+.compteur{display:inline-flex;min-width:22px;height:22px;align-items:center;justify-content:center;border-radius:999px;background:var(--acc);color:#fff;font-size:12.5px;font-weight:700;padding:0 6px}
+@media (max-width:640px){.suite .tete h1{font-size:26px}.suite section.carte{padding:16px}.barres{grid-template-columns:80px 1fr 44px}}

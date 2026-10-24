@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mes skills · Jarvis</title>
+<meta name="description" content="Les skills (des consignes pour l'IA) et les agents de Jarvis qui s'en servent.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8' fill='%23b5561f'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="lib/fonts/fonts.css">
+<link rel="stylesheet" href="app.css">
+<style>
+main.ecran{max-width:1100px}
+.tete-sk{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px}
+.tete-sk p{color:var(--mut);max-width:62ch;margin-top:6px}
+.grille-sk{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-top:14px}
+.sk{padding:16px 18px;border-radius:18px;background:var(--blanc);border:1px solid var(--line2);box-shadow:0 8px 22px rgba(80,55,25,.06)}
+.sk b{font-family:'Fraunces',serif;font-size:18px}
+.sk p{color:var(--mut);font-size:14px;margin-top:4px;line-height:1.45}
+.agents-sk{display:flex;flex-wrap:wrap;gap:6px 12px;margin:10px 0}
+.puce-sk{font-size:14px;display:flex;align-items:center;gap:4px}
+.texte-sk{white-space:pre-wrap;font-size:13px;max-height:70vh;overflow:auto;background:var(--blanc);padding:14px;border-radius:12px}
+h2.sec{font-size:22px;margin-top:30px}
+.form-sk{display:flex;flex-direction:column;gap:10px}
+.form-sk label{font-weight:600;font-size:14px}
+.form-sk input,.form-sk textarea{width:100%;font:inherit;padding:10px 12px;border-radius:12px;border:1px solid var(--line2);background:var(--blanc);color:var(--txt)}
+.form-sk textarea{min-height:160px;resize:vertical}
+.form-sk small{color:var(--dim)}
+</style>
+</head>
+<body data-ecran="plus">
+<main class="ecran">
+  <div class="hors" id="hors">Jarvis est éteint : double-clique sur <b>JARVIS.bat</b>.</div>
+  <div class="tete-sk">
+    <div><h1>Mes skills</h1><p>Un skill, ce sont des consignes à suivre pour un type de tâche. Claude Code les lit, et maintenant les agents de Jarvis aussi : coche à quels agents chaque skill sert. Pour créer ou changer un skill, demande-le à Jarvis dans le chat (« crée un skill… »).</p></div>
+  </div>
+  <div class="grille-sk" id="installes"><p class="dim">Chargement…</p></div>
+</main>
+<script src="app.js"></script>
+<script>
+'use strict';
+const NOMS_AG = {tous: 'Tous', jarvis: 'Jarvis', emploi: 'Emploi', redaction: 'Rédaction', code: 'Code', mails: 'Mails', securite: 'Sécurité', veille: 'Découvertes', video: 'Vidéo'};
+const quand = d => d && d.t ? new Date(d.t).toLocaleString('fr-FR', {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'}) + ' (' + (NOMS_AG[d.agent] || d.agent) + ')' : 'jamais';
+function carte(s, agents) {
+  const c = el('article', 'sk'); c.append(el('b', '', s.nom), el('p', '', s.description || '—'), el('p', 'dim', 'Dernière utilisation par un agent : ' + quand(s.derniere)));
+  const ag = el('div', 'agents-sk');
+  for (const a of ['tous', ...agents]) {
+    const l = el('label', 'puce-sk'), i = el('input'); i.type = 'checkbox'; i.checked = s.agents.includes(a);
+    i.onchange = async () => { i.disabled = true;
+      try { await api('/skills/agents', {skill: s.nom, agent: a, actif: i.checked}); toast(`${s.nom} : ${i.checked ? 'sert' : 'ne sert plus'} à ${NOMS_AG[a] || a}.`); }
+      catch (e) { i.checked = !i.checked; toast(e.message); } i.disabled = false; };
+    l.append(i, ' ' + (NOMS_AG[a] || a)); ag.append(l);
+  }
+  c.append(ag, bouton('Lire', '', async () => {
+    try { const d = await api('/skills?lire=' + encodeURIComponent(s.nom)); const b = fenetre(s.nom); b.append(el('pre', 'texte-sk', d.texte)); }
+    catch (e) { toast(e.message); } }));
+  return c;
+}
+async function charger() {
+  try { const d = await api('/skills'); $('hors').classList.remove('vu'); $('installes').replaceChildren(...d.skills.map(s => carte(s, d.agents))); }
+  catch (_) { $('hors').classList.add('vu'); }
+}
+charger();
+</script>
+</body>
+</html>

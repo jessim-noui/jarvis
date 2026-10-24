@@ -1,0 +1,38 @@
+{
+  "composants": {
+    "routeur": {
+      "etat": "ok",
+      "derniere_reussite": "2026-10-23T03:43:12"
+    },
+    "serveur": {
+      "etat": "ok",
+      "derniere_reussite": "2026-10-23T03:43:12"
+    },
+    "ia:jarvis": {
+      "etat": "ok",
+      "derniere_reussite": "2026-10-23T03:43:12"
+    },
+    "ia:jarvis-code": {
+      "etat": "ok",
+      "derniere_reussite": "2026-10-23T03:43:12"
+    },
+    "ia:jarvis-redaction": {
+      "etat": "ok",
+      "derniere_reussite": "2026-10-23T03:43:12"
+    },
+    "ia:jarvis-rapide": {
+      "etat": "ok",
+      "derniere_reussite": "2026-10-23T03:43:12"
+    },
+    "ollama": {
+      "etat": "arrete"
+    },
+    "telegram": {
+      "etat": "ok"
+    },
+    "planificateur": {
+      "etat": "ok",
+      "jour": "2026-10-23"
+    }
+  }
+}

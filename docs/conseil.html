@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Table du Conseil · Jarvis</title>
+<meta name="description" content="Cinq IA autour d'une table donnent leur avis, se répondent, puis le président tranche, avec les sources.">
+<link rel="stylesheet" href="lib/fonts/fonts.css">
+<link rel="stylesheet" href="app.css">
+<style>
+main.ecran{max-width:1180px}
+.tete-c p{color:var(--mut);max-width:68ch;margin-top:6px}
+.form-c{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-top:16px}
+.form-c textarea{flex:1 1 420px;font:inherit;padding:12px 14px;border-radius:14px;border:1px solid var(--line2);background:var(--blanc);color:var(--txt);min-height:64px;resize:vertical}
+.limite{color:var(--dim);font-size:14px;margin-top:6px}
+.grille-c{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(280px,1fr);gap:18px;margin-top:18px}
+@media (max-width:860px){.grille-c{grid-template-columns:1fr}}
+/* La salle : un sol de bois, la table au milieu, les bonshommes autour (pixel art agrandi sans flou) */
+.salle{position:relative;aspect-ratio:16/10;border-radius:20px;overflow:hidden;background:repeating-linear-gradient(90deg,#c99e6c 0 38px,#c19463 38px 40px);border:4px solid #5a3d27}
+.table{position:absolute;left:22%;top:40%;width:56%;height:24%;background:#7a4a2a;border:6px solid #4e2f1b;border-radius:10px;box-shadow:0 10px 0 #3f2616}
+.table::after{content:'';position:absolute;inset:14% 8%;border:3px dashed rgba(255,230,190,.25);border-radius:6px}
+.membre{position:absolute;transform:translate(-50%,-50%);background:none;border:0;padding:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;font:inherit;color:#2a1f1a}
+.membre canvas{width:48px;height:72px;image-rendering:pixelated;image-rendering:crisp-edges}
+.membre.choisi canvas{filter:drop-shadow(0 0 0 #fff) drop-shadow(0 0 4px #ffe1a8)}
+.membre .nom{font-size:13px;font-weight:600;background:rgba(255,248,236,.9);padding:1px 8px;border-radius:8px;white-space:nowrap}
+.membre:focus-visible{outline:3px solid #e2733b;outline-offset:4px;border-radius:8px}
+.bulle{position:absolute;top:-30px;left:50%;transform:translateX(-50%);background:#fffaf2;border:2px solid #2b2024;border-radius:10px;padding:1px 8px;font-size:13px;white-space:nowrap}
+.bulle::after{content:'';position:absolute;bottom:-7px;left:50%;margin-left:-5px;border:5px solid transparent;border-top-color:#2b2024}
+.bulle.reflechit,.bulle.cherche,.bulle.ecrit{animation:battre 1.2s ease-in-out infinite}
+.bulle.erreur{background:#f6d5c6}.bulle.fini{background:#e3f0dc}
+@media (max-width:600px){.salle{aspect-ratio:4/5}.membre canvas{width:36px;height:54px}.membre .nom{font-size:11px;padding:1px 4px}.bulle{font-size:11px;top:-24px;padding:0 5px}}
+@keyframes battre{50%{transform:translate(-50%,-3px)}}
+@media (prefers-reduced-motion:reduce){.bulle{animation:none!important}}
+.fiche-c{padding:18px 20px;border-radius:18px;background:var(--blanc);border:1px solid var(--line2)}
+.fiche-c h2{font-size:22px}
+.fiche-c .pense{white-space:pre-wrap;line-height:1.5;margin-top:10px;max-height:340px;overflow:auto}
+.fiche-c form{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.fiche-c input,.fiche-c select,.fiche-c textarea{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--line2);background:#fffaf2;color:var(--txt)}
+.verdict{white-space:pre-wrap;line-height:1.55}
+.sec-c{margin-top:26px}
+</style>
+</head>
+<body data-ecran="plus">
+<main class="ecran">
+  <div class="hors" id="hors">Jarvis est éteint : double-clique sur <b>JARVIS.bat</b>.</div>
+  <div class="tete-c">
+    <h1>La Table du Conseil</h1>
+    <p>Pour une question difficile : cinq IA donnent chacune leur avis, puis se répondent, et le président met tout à plat. Clique sur un bonhomme pour voir ce qu’il pense, en direct.</p>
+  </div>
+  <form class="form-c" id="form">
+    <textarea id="question" required minlength="8" maxlength="1600" placeholder="Ta question, par exemple : vaut-il mieux viser un CDD en support ou un VIE ?"></textarea>
+    <button class="btn pri" id="lancer">Réunir le Conseil</button>
+  </form>
+  <p class="limite" id="limite"></p>
+  <p class="dim" id="etat" role="status"></p>
+  <div class="grille-c">
+    <div class="salle" id="salle"><div class="table" aria-hidden="true"></div></div>
+    <aside class="fiche-c" id="fiche" aria-live="polite"><p class="dim">Clique sur un bonhomme.</p></aside>
+  </div>
+  <section class="sec-c"><h2>Verdict du président</h2><div class="verdict" id="verdict"><p class="dim">Pas encore de Conseil.</p></div></section>
+  <section class="sec-c"><h2>Sources consultées</h2><div id="sources"></div></section>
+</main>
+<script src="demo.js"></script>
+<script src="app.js"></script>
+<script src="persos.js"></script>
+<script>
+'use strict';
+const PLACES = [[30, 25], [50, 25], [70, 25], [38, 80], [62, 80]];  // autour de la table (en % de la salle) ; le président en bout
+const LOOK = ['gardien', 'ingenieur', 'recruteuse', 'eclaireur', 'facteur'];
+const ETATS = {attend: 'attend', cherche: '🔍 cherche', reflechit: '… réfléchit', ecrit: '✎ écrit', fini: '✓ a fini', erreur: '! erreur'};
+const NOMS_IA = {jarvis: 'Jarvis (le plus fort)', 'jarvis-rapide': 'Rapide', 'jarvis-redaction': 'Rédaction (français)', 'jarvis-code': 'Code'};
+let D = null, choix = 5, minuteur = null;  // 5 = le président
+
+function membres() {  // les 5 rôles + le président, avec leur état en direct (ou le dernier Conseil)
+  const r = D.dernier || {}, live = D.en_cours || D.membres;
+  const m = D.roles.map((x, i) => {
+    const v = (D.membres || [])[i], a = (r.avis || [])[i] || {};
+    return live && v ? {...x, ...v} : {...x, etat: a.avis ? 'fini' : 'attend', texte: '', tour1: a.avis || '', tour2: a.reponse || '', modele: a.modele || ''};
+  });
+  const p = live && D.president_etat ? D.president_etat : {...D.president, etat: r.synthese ? 'fini' : 'attend', texte: r.synthese || '', modele: r.president || ''};
+  return [...m, p];
+}
+function dessiner() {
+  const salle = $('salle'), ms = membres();
+  salle.querySelectorAll('.membre').forEach(b => b.remove());
+  ms.forEach((m, i) => {
+    const b = el('button', 'membre' + (i === choix ? ' choisi' : '')); b.type = 'button';
+    const [x, y] = i < 5 ? PLACES[i] : [89, 52];
+    b.style.left = x + '%'; b.style.top = y + '%';
+    const c = SPR[i < 5 ? LOOK[i] : 'mentor'], cv = document.createElement('canvas'); cv.width = 16; cv.height = 24; cv.getContext('2d').drawImage(c, 0, 0);
+    b.append(el('span', 'bulle ' + m.etat, ETATS[m.etat] || m.etat), cv, el('span', 'nom', m.nom));
+    b.setAttribute('aria-label', `${m.nom} : ${ETATS[m.etat] || m.etat}`);
+    b.onclick = () => { choix = i; dessiner(); };
+    salle.append(b);
+  });
+  fiche(ms[choix]);
+}
+function fiche(m) {
+  const f = $('fiche'), n = choix;
+  f.replaceChildren(el('h2', '', m.nom), el('p', 'dim', 'But : ' + m.but), el('p', 'dim', 'IA : ' + (NOMS_IA[m.profil] || m.profil) + (m.modele ? ' · a répondu : ' + m.modele : '')),
+                    el('p', '', 'État : ' + (ETATS[m.etat] || m.etat)));
+  const vivant = D.en_cours && ['reflechit', 'ecrit', 'cherche'].includes(m.etat);
+  if (n < 5) {
+    if (vivant || (!m.tour1 && m.texte)) f.append(el('div', 'pense', m.texte || '…'));
+    if (m.tour1) f.append(el('h3', '', 'Tour 1 : son avis'), el('div', 'pense', brut(m.tour1)));
+    if (m.tour2) f.append(el('h3', '', 'Tour 2 : sa réponse aux autres'), el('div', 'pense', brut(m.tour2)));
+    if (!D.en_cours) {  // changer le rôle (nom, but, IA) : enregistré
+      const form = el('form'), nom = el('input'), but = el('textarea'), ia = el('select');
+      nom.value = m.nom; nom.maxLength = 40; nom.setAttribute('aria-label', 'Nom du rôle'); but.value = m.but; but.maxLength = 300; but.rows = 3; but.setAttribute('aria-label', 'But du rôle');
+      for (const p of D.profils) { const o = el('option', '', NOMS_IA[p] || p); o.value = p; o.selected = p === m.profil; ia.append(o); }
+      ia.setAttribute('aria-label', 'IA du rôle');
+      const ok = el('button', 'btn', 'Enregistrer ce rôle');
+      form.append(el('b', '', 'Changer ce rôle'), nom, but, ia, ok);
+      form.onsubmit = async e => { e.preventDefault(); ok.disabled = true;
+        try { await api('/conseil/role', {n, nom: nom.value, but: but.value, profil: ia.value}); toast('Rôle enregistré.'); await charger(); } catch (err) { toast(err.message); ok.disabled = false; } };
+      f.append(form);
+    }
+  } else {
+    f.append(el('div', 'pense', brut(m.texte) || 'Il attend les avis.'));
+  }
+}
+function afficher() {
+  $('limite').textContent = `Limite : ${D.appels_prevus} appels d’IA au plus (1 recherche web, 2 tours de ${D.roles.length} avis, le président). Aucune action sur ton PC.`;
+  $('lancer').disabled = !!D.en_cours;
+  $('etat').textContent = D.en_cours ? (['Recherche des sources…', 'Tour 1 : chacun donne son avis…', 'Tour 2 : chacun répond aux autres…', 'Le président tranche…'][D.tour || 0])
+    : D.erreur ? 'Le Conseil a rencontré une erreur : ' + D.erreur : D.dernier && D.dernier.question ? 'Dernière question : « ' + D.dernier.question + ' »' : '';
+  const r = D.dernier || {};
+  if (r.synthese && !D.en_cours) $('verdict').replaceChildren(el('p', '', brut(r.synthese)), el('p', 'dim', 'Président : ' + r.president));
+  if (r.sources) $('sources').replaceChildren(...(r.sources.length ? r.sources.map((x, i) => { const p = el('p'); p.append('[' + (i + 1) + '] ');
+    p.append(/^https?:\/\//.test(x.lien || '') ? lien(x.titre || x.lien, x.lien, '') : document.createTextNode(x.titre || '')); return p; }) : [el('p', 'dim', 'Aucune source web trouvée.')]));
+  dessiner();
+}
+async function charger() {
+  try { D = await api('/conseil'); $('hors').classList.remove('vu'); afficher(); } catch (_) { $('hors').classList.add('vu'); return; }
+  clearTimeout(minuteur); if (D.en_cours) minuteur = setTimeout(charger, 1000);  // le texte s'écrit en direct : mis à jour chaque seconde
+}
+$('form').onsubmit = async e => { e.preventDefault(); $('lancer').disabled = true;
+  try { await api('/conseil/lancer', {question: $('question').value}); choix = 0; charger(); } catch (err) { toast(err.message); $('lancer').disabled = false; } };
+charger();
+</script>
+</body>
+</html>

@@ -1,0 +1,103 @@
+# Routeur d'IA (LiteLLM). Cles dans cles.env (jamais ici).
+# Mis a jour par la mission Jarvis le 18/10/2026 (ancienne version : archives\anciennes-versions\config_avant_jarvis.yaml).
+# Catalogues verifies ce jour-la : llama-3.3-70b (Groq), gemini-2.5-flash et mistral-large (offre gratuite) n'existent plus.
+#
+# Principe : chaque "etage" est un modele nomme une seule fois (section 1).
+# Un profil (section 2) = son 1er etage ; les etages suivants sont dans router_settings.fallbacks.
+# Les nouveautes des catalogues sont PROPOSEES par jarvis\maj_modeles.py : rien ne change tout seul.
+
+model_list:
+  # ---- 1. Etages (un modele chacun) ----
+  - model_name: e-nemotron-ultra        # NVIDIA Nemotron 3 Ultra 550B, gratuit via OpenRouter
+    litellm_params: { model: openrouter/nvidia/nemotron-3-ultra-550b-a55b:free, api_key: os.environ/OPENROUTER_API_KEY, timeout: 60 }
+  - model_name: e-nemotron-super        # NVIDIA Nemotron 3 Super 120B, build.nvidia.com
+    litellm_params: { model: nvidia_nim/nvidia/nemotron-3-super-120b-a12b, api_key: os.environ/NVIDIA_API_KEY, timeout: 60 }
+  - model_name: e-gemini-flash          # Gemini 3.8 Flash (le plus recent qui repond en gratuit)
+    litellm_params: { model: gemini/gemini-3.8-flash, api_key: os.environ/GEMINI_API_KEY, timeout: 60 }
+  - model_name: e-gemini-3.5-flash
+    litellm_params: { model: gemini/gemini-3.5-flash, api_key: os.environ/GEMINI_API_KEY, timeout: 60 }
+  - model_name: e-gemini-lite
+    litellm_params: { model: gemini/gemini-flash-lite-latest, api_key: os.environ/GEMINI_API_KEY, timeout: 30 }
+  - model_name: e-vision-nemotron       # vision de secours, OpenRouter gratuit
+    litellm_params: { model: openrouter/nvidia/nemotron-3.5-super-vl:free, api_key: os.environ/OPENROUTER_API_KEY, timeout: 60 }
+  - model_name: e-gpt-oss-120b          # Groq, tres rapide
+    litellm_params: { model: groq/openai/gpt-oss-120b, api_key: os.environ/GROQ_API_KEY, timeout: 30 }
+  - model_name: e-gpt-oss-20b
+    litellm_params: { model: groq/openai/gpt-oss-20b, api_key: os.environ/GROQ_API_KEY, timeout: 30 }
+  - model_name: e-qwen-groq             # Qwen 3.8 27B sur Groq
+    litellm_params: { model: groq/qwen/qwen3.8-27b, api_key: os.environ/GROQ_API_KEY, timeout: 30 }
+  - model_name: e-mistral-medium        # Mistral Large n'est pas inclus dans l'offre gratuite : Medium = le meilleur dispo
+    litellm_params: { model: mistral/mistral-medium-latest, api_key: os.environ/MISTRAL_API_KEY, timeout: 60 }
+  - model_name: e-ministral-14b
+    litellm_params: { model: mistral/ministral-14b-latest, api_key: os.environ/MISTRAL_API_KEY, timeout: 60 }
+  - model_name: e-mistral-code
+    litellm_params: { model: mistral/mistral-code-latest, api_key: os.environ/MISTRAL_API_KEY, timeout: 60 }
+  - model_name: e-codestral
+    litellm_params: { model: mistral/codestral-latest, api_key: os.environ/MISTRAL_API_KEY, timeout: 60 }
+  # Mission 10 : gagnant du Labo (OpenRouter « :free ») ; North Code, Gemma 4, Nemotron Lightning retirés (échecs ou lents)
+  - model_name: e-minimax-flash         # MiniMax M3.1 Flash
+    litellm_params: { model: openrouter/minimax/minimax-m3.1-flash:free, api_key: os.environ/OPENROUTER_API_KEY, timeout: 60 }
+  - model_name: e-local-qwen            # Local, carte graphique 12 Go. Mission 4 : sans reflexion, garde en memoire 30 min, 120 s max
+    litellm_params: { model: ollama_chat/qwen3:14b, api_base: http://127.0.0.1:11434, timeout: 120, think: false, keep_alive: 2m }
+  # Mission 11 : candidats Ollama Cloud (compte gratuit, sans carte ; tournent chez Ollama, 0 mémoire sur le PC). Passent par
+  # l'Ollama local connecté au compte. JAMAIS dans jarvis-prive ni local. Hors des chaînes tant que le Labo ne les a pas gagnés.
+  - model_name: e-oc-gemma4           # Mission 12 : Labo (3 rep.) redaction 67 % contre 44 %, code egal et 2x plus rapide -> 1er secours de jarvis-redaction
+    litellm_params: { model: ollama_chat/gemma4:31b-cloud, api_base: http://127.0.0.1:11434, timeout: 120 }
+  - model_name: e-oc-nemotron-super
+    litellm_params: { model: ollama_chat/nemotron-3-super:cloud, api_base: http://127.0.0.1:11434, timeout: 120 }
+  - model_name: e-local-llama
+    litellm_params: { model: ollama_chat/llama3.1:8b, api_base: http://127.0.0.1:11434, timeout: 120, keep_alive: 2m }
+
+  # ---- 2. Profils Jarvis (1er etage de chaque chaine) ----
+  - model_name: jarvis                  # Mission 16 : Labo des outils, GPT-OSS 120B (Groq) 8/8 bons outils en 0,5 s ; Nemotron Ultra : quota gratuit vite atteint
+    litellm_params: { model: groq/openai/gpt-oss-120b, api_key: os.environ/GROQ_API_KEY, timeout: 30 }
+  - model_name: jarvis-code
+    litellm_params: { model: mistral/mistral-code-latest, api_key: os.environ/MISTRAL_API_KEY, timeout: 60 }
+  - model_name: jarvis-redaction
+    litellm_params: { model: mistral/mistral-medium-latest, api_key: os.environ/MISTRAL_API_KEY, timeout: 60 }
+  - model_name: jarvis-rapide           # Mission 10 : Qwen (Groq) gagne au Labo sur le tri d'offres (100 % contre 67 %, 0,2 s)
+    litellm_params: { model: groq/qwen/qwen3.8-27b, api_key: os.environ/GROQ_API_KEY, timeout: 30 }
+  - model_name: jarvis-vision
+    litellm_params: { model: gemini/gemini-3.8-flash, api_key: os.environ/GEMINI_API_KEY, timeout: 60 }
+  - model_name: jarvis-prive            # LOCAL UNIQUEMENT : rien ne sort du PC. Delai depasse (120 s) -> bascule sur llama3.1:8b (local aussi)
+    litellm_params: { model: ollama_chat/qwen3:14b, api_base: http://127.0.0.1:11434, timeout: 120, think: false, keep_alive: 2m }
+
+  # ---- 3. Anciens noms (gardes pour le chat, analyse-pc et analyse-offres) ----
+  - model_name: groq
+    litellm_params: { model: groq/openai/gpt-oss-120b, api_key: os.environ/GROQ_API_KEY, timeout: 30 }
+  - model_name: gemini
+    litellm_params: { model: gemini/gemini-3.8-flash, api_key: os.environ/GEMINI_API_KEY, timeout: 60 }
+  - model_name: mistral
+    litellm_params: { model: mistral/mistral-medium-latest, api_key: os.environ/MISTRAL_API_KEY, timeout: 60 }
+  - model_name: local
+    litellm_params: { model: ollama_chat/llama3.1:8b, api_base: http://127.0.0.1:11434, timeout: 300, keep_alive: 2m }
+  - model_name: rapide                  # = jarvis-rapide
+    litellm_params: { model: groq/openai/gpt-oss-120b, api_key: os.environ/GROQ_API_KEY, timeout: 30 }
+  - model_name: malin                   # = jarvis-redaction
+    litellm_params: { model: mistral/mistral-medium-latest, api_key: os.environ/MISTRAL_API_KEY, timeout: 60 }
+
+router_settings:
+  # Chaines de bascule, du plus puissant au plus leger. jarvis-prive et local ne sortent jamais du PC.
+  # Mission 13 : plus aucun modele local (e-local-*, e-oc-* via Ollama) en secours d'une IA en ligne : un quota epuise ne charge plus 9 Go.
+  fallbacks:
+    - { jarvis: [e-gemini-flash, e-nemotron-ultra, e-nemotron-super] }
+    - { jarvis-code: [e-codestral, e-qwen-groq, e-minimax-flash] }
+    - { jarvis-redaction: [e-ministral-14b, e-gpt-oss-120b, e-minimax-flash, e-gemini-flash] }
+    - { jarvis-rapide: [e-gpt-oss-120b, e-gpt-oss-20b, e-gemini-lite] }
+    - { jarvis-vision: [e-gemini-3.5-flash, e-gemini-lite, e-vision-nemotron] }
+    - { jarvis-prive: [e-local-llama] }
+    - { groq: [e-qwen-groq] }
+    - { gemini: [e-gemini-3.5-flash] }
+    - { mistral: [e-ministral-14b] }
+    - { rapide: [e-qwen-groq, e-gpt-oss-20b, e-gemini-lite] }
+    - { malin: [e-ministral-14b, e-gemini-flash, e-gpt-oss-120b] }
+  num_retries: 0
+  timeout: 60
+  allowed_fails: 2
+  cooldown_time: 60
+
+litellm_settings:
+  drop_params: true
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY

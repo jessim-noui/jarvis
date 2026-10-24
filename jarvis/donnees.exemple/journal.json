@@ -1,0 +1,32 @@
+[
+  {
+    "id": "j1",
+    "agent": "emploi",
+    "action": "Recherche d'offres",
+    "etat": "fini",
+    "statut": "ok",
+    "modele": "jarvis-rapide",
+    "resume": "6 offres retenues sur 25 lues (offres d'exemple).",
+    "t": "2026-10-23T08:05:12"
+  },
+  {
+    "id": "j2",
+    "agent": "mails",
+    "action": "Tri des mails",
+    "etat": "fini",
+    "statut": "ok",
+    "modele": "jarvis-prive",
+    "resume": "3 réponses de candidature classées.",
+    "t": "2026-10-23T08:12:12"
+  },
+  {
+    "id": "j3",
+    "agent": "sante",
+    "action": "Test des IA",
+    "etat": "fini",
+    "statut": "ok",
+    "modele": "",
+    "resume": "Toutes les IA répondent.",
+    "t": "2026-10-23T09:00:12"
+  }
+]

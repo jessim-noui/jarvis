@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rapports · Jarvis</title>
+<meta name="description" content="Les rapports de mission : ce qui marche, ce qui reste, ce que tu as à faire.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8' fill='%23b5561f'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="lib/fonts/fonts.css">
+<link rel="stylesheet" href="app.css">
+<style>
+/* Mission 15, étape 9 : les Rapports (maquette R_Rapports, image 13). RAPPORT.md lu en direct (/rapport), découpé par « ## ». Ancienne page : archives/rapports_avant_m15p3.html */
+body.rap{height:100vh;overflow:hidden;background:var(--fond);color:var(--encre);font-family:'Work Sans',sans-serif}
+.rap main{position:fixed;inset:var(--nav) 0 0 0;display:grid;grid-template-columns:430px minmax(0,1fr);gap:22px;padding:16px 28px 18px}
+.gauche{display:flex;flex-direction:column;gap:10px;min-height:0}
+.t{display:flex;gap:10px;align-items:center}.t h1{margin:0;font:600 30px 'Fraunces',serif}
+.t input{flex:1;font:inherit;font-size:13.5px;padding:8px 12px;border-radius:10px;border:1px solid var(--bord);background:var(--carte);color:var(--encre)}
+.liste{display:flex;flex-direction:column;gap:5px;flex:1;min-height:0;overflow:auto;padding:2px}
+.tuile{font:inherit;line-height:1.25;color:inherit;text-align:left;display:flex;gap:12px;align-items:center;border-radius:12px;padding:5px 12px;border:1px solid var(--bord);background:transparent;transition:transform .2s,box-shadow .2s,opacity .2s}
+.tuile:hover{transform:translateY(-3px);box-shadow:0 8px 18px rgba(27,35,24,.12)}
+.tuile[aria-current=true]{border:2px solid var(--encre);background:var(--carte)}.tuile.loin{opacity:.3}
+.tuile>b{font:800 22px 'Fraunces',serif;width:30px;text-align:right;flex:none}
+.tuile .m{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.tuile .m>span:first-child{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.barre{display:flex;height:5px;border-radius:99px;overflow:hidden;gap:2px;background:var(--creux)}
+.barre i{display:block}.tuile .d{font:11px 'JetBrains Mono',monospace;color:var(--gris)}
+article.r{background:var(--carte);border-radius:22px;padding:24px 30px;display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:18px 28px;align-content:start;box-shadow:0 1px 0 var(--bord);min-height:0;overflow:auto}
+.r header{grid-column:span 2;display:flex;align-items:flex-end;gap:18px;border-bottom:2px solid var(--encre);padding-bottom:12px}
+.r header>b{font:800 84px/.8 'Fraunces',serif;color:var(--orange)}
+.r .tt{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}.r .tt small{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--gris)}
+.r .tt b{font:600 30px/1.1 'Fraunces',serif;text-wrap:balance}
+.cpt{display:flex;gap:6px;font-size:13px;flex:none}.cpt span{border-radius:999px;padding:4px 10px}
+.c-ok{background:#e3f1e6;color:#1e6b35}.c-warn{background:#fbf0d9;color:#8a5a00}.c-no{background:#fbe4dc;color:#8a2a0a}
+html[data-theme=sombre] .c-ok{background:#22352a;color:#7fd18f}html[data-theme=sombre] .c-warn{background:#3a3220;color:#e0b75a}html[data-theme=sombre] .c-no{background:#3a2a26;color:#f08a76}
+.pts{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px}
+.pts li{display:flex;gap:10px;font-size:15.5px;line-height:1.45}.pts li>span:first-child{font-size:17px;width:24px;flex:none}
+.pts li.warn{color:#8a5a00}.pts li.no{color:#8a2a0a}html[data-theme=sombre] .pts li.warn{color:#e0b75a}html[data-theme=sombre] .pts li.no{color:#f08a76}
+.pts code,.brut code{font:12.5px 'JetBrains Mono',monospace;background:var(--creux);border-radius:5px;padding:1px 5px}
+mark{background:#fff3c4;color:inherit;border-radius:4px}html[data-theme=sombre] mark{background:#5a4a1a}
+.cote{display:flex;flex-direction:column;gap:12px}
+.faire{background:#fbf0d9;border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}.faire b{font-size:13px}
+.faire label{display:flex;gap:8px;font-size:13px;line-height:1.4}.faire input{flex:none;margin-top:2px}.faire label.coche{text-decoration:line-through;opacity:.7}
+html[data-theme=sombre] .faire{background:var(--ambre-c)}
+.prof{background:#1b2318;color:#eef3e8;border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.prof b{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#9fd3a8}.prof span{font:italic 16px/1.4 'Fraunces',serif}
+html[data-theme=sombre] .prof{background:#262a36}
+.detail{font-size:12.5px;color:var(--gris2);line-height:1.5}.detail code{font:11.5px 'JetBrains Mono',monospace}
+.brut{grid-column:span 2;font-size:14.5px;line-height:1.55;white-space:pre-wrap;color:var(--encre2)}
+.entre{animation:entre .45s cubic-bezier(.16,1,.3,1) both}
+@keyframes entre{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.entre{animation:none}.tuile{transition:none}}
+@media (max-width:1000px){body.rap{height:auto;overflow:auto}.rap main{position:static;margin-top:var(--nav);grid-template-columns:1fr}article.r{grid-template-columns:1fr}.r header,.brut{grid-column:auto}}
+</style>
+</head>
+<body data-ecran="rapports" class="rap">
+<main>
+  <section class="gauche" aria-label="Toutes les missions">
+    <div class="t"><h1>Rapports</h1><input id="q" placeholder="Chercher : Ollama, lettres, tests…" aria-label="Chercher dans les rapports"></div>
+    <div class="liste" id="liste"></div>
+  </section>
+  <article class="r" id="r" aria-label="Le rapport choisi" aria-live="polite"></article>
+</main>
+<script src="demo.js"></script>
+<script src="app.js"></script>
+<script>
+'use strict';
+/* RAPPORT.md découpé par « ## … (JJ/MM/AAAA) » : « ## Mission N — titre » donne le numéro, les autres sections datées « + ».
+   Lignes reconnues : « - ✅/⚠️/❌ … », « **À faire** », « **Mode prof** » ; le reste en points simples ; une section sans aucun point
+   est montrée telle quelle. Compteurs = nombre de ✅ ⚠️ ❌ dans toute la section. (Brouillon délégué à Mistral Code, réécrit.) */
+const EMO = {'✅': 'ok', '⚠️': 'warn', '❌': 'no'}, IC = {ok: '✅', warn: '⚠️', no: '❌', '': '•'};
+let M = [], sel = null;
+function decouper(texte) {
+  const out = [], lignes = texte.split('\n');
+  let cur = {n: '1', t: 'Jarvis est né (missions 1 et 2)', d: '17/10', brut: []}, section = '';
+  for (const l of lignes) {
+    const h = l.match(/^## (.*?)\s*\((\d\d)\/(\d\d)\/\d{4}(?: [\d:]+)?[^)]*\)\s*$/);
+    if (h) { out.push(cur); const m = h[1].match(/^Mission (\d+)\s*(?:[—–-]\s*(.*))?$/);
+      cur = {n: m ? m[1] : '+', t: m ? (m[2] || 'Mission ' + m[1]).trim() : h[1].trim(), d: h[2] + '/' + h[3], brut: []}; continue; }
+    if (/^#/.test(l)) section = l; cur.brut.push(l);
+  }
+  out.push(cur);
+  return out.map((m, k) => {
+    const pts = [], faire = []; let prof = '', dans = '', sec = '';
+    for (const l of m.brut) {
+      if (/^## /.test(l)) { sec = l; dans = /faire/i.test(l) ? 'faire' : /mode prof/i.test(l) ? 'prof' : ''; continue; }
+      const p = l.match(/^\s*(?:-|\d+\.)\s+(.*)$/), x = p ? p[1] : l.trim();
+      if (!x) continue;
+      if (/\*\*Mode prof/.test(x)) { prof = x.replace(/^.*?Mode prof[^:]*:\*?\*?\s*/, ''); dans = 'prof+'; continue; }
+      if (/\*\*À faire/.test(x)) { const r = x.replace(/^.*?À faire[^:]*:\*?\*?\s*/, ''), parts = r.split(/\s(?=\d\.\s)/).map(s => s.replace(/^\d\.\s*/, '').trim()).filter(Boolean);
+        faire.push(...parts); dans = ''; continue; }
+      if (dans === 'prof+' && /^\s{2,}\S/.test(l)) { prof += ' ' + l.trim(); continue; }
+      if (dans === 'faire' && p) { faire.push(x); continue; }
+      if (dans === 'prof' && p) { if (!prof) prof = x; continue; }
+      dans = dans === 'prof+' ? '' : dans;
+      if (!p) continue;
+      const e = Object.keys(EMO).find(s => x.startsWith(s));
+      pts.push({e: e ? EMO[e] : '', x: e ? x.slice(e.length).trim() : x});
+    }
+    const tout = m.brut.join('\n'), cpt = s => tout.split(s).length - 1;
+    const citation = prof.match(/«\s*([^»]+?)\s*»\*?\s*$/);
+    return {...m, cle: 'r' + k, pts, faire, prof: citation ? citation[1] : prof.replace(/\*/g, ''), ok: cpt('✅'), warn: cpt('⚠️'), no: cpt('❌'), brut: tout.trim()};
+  }).reverse();
+}
+const esc = s => s.replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+function riche(s, q) {  // Markdown simple (gras, italique, code) + mots cherchés surlignés, sur du texte échappé
+  let h = esc(s).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/\*([^*]+)\*/g, '<i>$1</i>');
+  for (const w of q) h = h.replace(new RegExp('(?![^<]*>)(' + w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi'), '<mark>$1</mark>');
+  return h;
+}
+const sans = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const mots = () => $('q').value.trim().split(/\s+/).filter(w => w.length > 1);
+const trouve = (m, q) => q.every(w => sans(m.brut + ' ' + m.t).includes(sans(w)));
+const coche = (m, f) => memo.lire('rap:' + m.n + ':' + f) === '1';
+
+function liste() {
+  const q = mots(), z = $('liste'); z.replaceChildren();
+  for (const m of M) {
+    const b = bouton('', '', () => { sel = m; liste(); detail(); }); b.className = 'tuile' + (trouve(m, q) ? '' : ' loin');
+    b.setAttribute('aria-current', m === sel); const tot = m.ok + m.warn + m.no;
+    const mm = el('span', 'm'), br = el('span', 'barre');
+    for (const [k, c] of [['ok', '#2f8a49'], ['warn', '#e0a32a'], ['no', '#c2410c']]) if (m[k]) { const i = el('i'); i.style.cssText = `flex:${m[k] / tot};background:${c}`; br.append(i); }
+    mm.append(el('span', '', m.t), br); b.append(el('b', '', m.n), mm, el('span', 'd', m.d)); z.append(b);
+  }
+}
+function detail() {
+  const m = sel, q = mots(), a = $('r'); a.replaceChildren(); if (!m) return;
+  const h = el('header', 'entre'), tt = el('span', 'tt');
+  tt.append(el('small', '', (m.n === '+' ? 'À côté des missions' : 'Mission ' + m.n) + (m.d ? ' · ' + m.d + '/2026' : '')), el('b', '', m.t));
+  const c = el('span', 'cpt'); c.append(el('span', 'c-ok', '✅ ' + m.ok), el('span', 'c-warn', '⚠️ ' + m.warn), el('span', 'c-no', '❌ ' + m.no));
+  h.append(el('b', '', m.n), tt, c); a.append(h);
+  if (!m.pts.length) { const p = el('div', 'brut'); p.innerHTML = riche(m.brut, q); a.append(p); return; }
+  const ul = el('ul', 'pts');
+  m.pts.forEach((p, k) => { const li = el('li', 'entre ' + p.e); li.style.animationDelay = k * .05 + 's'; const s = el('span'); s.innerHTML = riche(p.x, q);
+    li.append(el('span', '', IC[p.e]), s); ul.append(li); });
+  const cote = el('div', 'cote');
+  if (m.faire.length) { const f = el('div', 'faire'); f.append(el('b', '', 'À faire par toi'));
+    for (const t of m.faire) { const l = el('label'), i = el('input'); i.type = 'checkbox'; i.checked = coche(m, t); l.classList.toggle('coche', i.checked);
+      i.onchange = () => { memo.ecrire('rap:' + m.n + ':' + t, i.checked ? '1' : '0'); l.classList.toggle('coche', i.checked); };
+      const s = el('span'); s.innerHTML = riche(t, q); l.append(i, s); f.append(l); }
+    cote.append(f); }
+  if (m.prof) { const p = el('div', 'prof'), s = el('span'); s.innerHTML = '« ' + riche(m.prof, q) + ' »'; p.append(el('b', '', 'Mode prof'), s); cote.append(p); }
+  const d = el('span', 'detail'); d.append('Le détail technique : ', el('code', '', 'RAPPORT-DETAILS.md' + (m.n === '+' ? '' : ' · Mission ' + m.n))); cote.append(d);
+  a.append(ul, cote);
+}
+$('q').oninput = () => { const q = mots(); if (q.length && sel && !trouve(sel, q)) sel = M.find(m => trouve(m, q)) || sel; liste(); detail(); };
+function depuisAdresse() { const v = (location.hash.match(/m=(\d+)/) || [])[1]; sel = M.find(m => m.n === v) || sel || M[0]; liste(); detail(); }
+addEventListener('hashchange', depuisAdresse);
+api('/rapport').then(d => { M = decouper(d.texte || ''); depuisAdresse(); }).catch(e => { $('r').replaceChildren(el('p', 'detail', 'Jarvis ne répond pas : ' + e.message)); });
+</script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Idées · Jarvis</title>
+<meta name="description" content="La boîte à idées : des idées rangées par Jarvis. Tu choisis, il prépare la mission. « Je veux » ne lance rien.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8' fill='%23b5561f'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="lib/fonts/fonts.css">
+<link rel="stylesheet" href="app.css">
+<style>
+/* Mission 15, étape 11 : la boîte à idées (maquette R_Idees, images 19 et 19b). Données : GET /idees (donnees/idees.json). */
+body.ide{height:100vh;overflow:hidden;background:var(--fond);color:var(--encre);font-family:'Work Sans',sans-serif}
+.ide main{position:fixed;inset:var(--nav) 0 0 0;display:grid;grid-template-columns:400px minmax(0,1fr);gap:22px;padding:14px 28px 18px}
+.gauche{display:flex;flex-direction:column;gap:4px;min-height:0;overflow:auto}
+.gauche h1{margin:0;font:600 30px 'Fraunces',serif}.gauche>span{font-size:13px;color:var(--gris2);margin-bottom:6px}
+.grp{font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:8px 4px 2px;font-weight:600}
+.it{color:inherit;text-align:left;display:flex;gap:10px;align-items:center;border-radius:12px;padding:7px 10px;line-height:1.25;transition:background .15s,transform .15s}
+.it:hover{background:var(--carte);transform:translateX(3px)}.it[aria-current=true]{background:var(--carte);box-shadow:inset 3px 0 0 var(--c)}.it.non{opacity:.6}.it.non b{text-decoration:line-through}
+.it>i{width:26px;height:26px;border-radius:8px;background:var(--c);flex:none}
+.it .m{flex:1;min-width:0;display:flex;flex-direction:column}.it .m b{font-size:14px}.it .m span{font-size:12px;color:var(--gris2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.it .e{font:10.5px 'JetBrains Mono',monospace;color:var(--gris2)}
+.droite{display:flex;flex-direction:column;min-height:0}
+article.fi{flex:1;min-height:0;background:var(--carte);border-radius:22px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 1px 0 var(--bord)}
+.band{height:150px;flex:none;background:var(--c);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.ill{width:260px;display:flex;align-items:center;justify-content:center;transform:scale(1.55);transform-origin:center}
+.ill .tj{background:#fff;color:#1b2318;border-radius:10px;padding:8px 12px;font:600 13px 'Fraunces',serif;max-width:230px;text-align:center}
+.corps{padding:18px 26px 20px;display:flex;flex-direction:column;gap:12px;flex:1;min-height:0;overflow:auto}
+.meta{display:flex;gap:8px;align-items:center}.meta>span:last-child{font-size:12.5px;color:var(--gris2)}
+.st{font-size:12px;font-weight:600;border-radius:999px;padding:4px 10px}
+.st.mission{background:#e3f1e6;color:#1e6b35}.st.veux{background:#fbe9dc;color:#9a3f12}.st.libre,.st.tard{background:#ece6da;color:#3d4236}.st.non{background:#fbe4dc;color:#8a2a0a}
+html[data-theme=sombre] .st.mission{background:#22352a;color:#7fd18f}html[data-theme=sombre] .st.veux{background:#3a2a26;color:#f3a273}
+html[data-theme=sombre] .st.libre,html[data-theme=sombre] .st.tard{background:var(--creux);color:var(--encre2)}html[data-theme=sombre] .st.non{background:#3a2a26;color:#f08a76}
+.corps>b{font:600 30px/1.1 'Fraunces',serif}.corps>.ap{font-size:16px;line-height:1.5;color:var(--encre2)}
+.deux{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:18px;align-items:start}
+.cm{display:flex;flex-direction:column;gap:8px}.cm>span{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gris)}
+.cm ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}.cm li{display:flex;gap:10px;align-items:flex-start}
+.cm li b{font:20px/1 'Fraunces',serif;color:var(--c);width:18px;flex:none}.cm li span{font-size:14px;line-height:1.45}
+html[data-theme=sombre] .cm li b{filter:brightness(1.8)}
+.ent{background:#1b2318;color:#eef3e8;border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.ent span:first-child{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#9fd3a8}.ent span:last-child{font:italic 16px/1.4 'Fraunces',serif}
+html[data-theme=sombre] .ent{background:#262a36}
+.acts{margin-top:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.b-veux{font-size:14.5px;border-radius:12px;padding:10px 18px;background:#2f8a49;color:#fff}
+.b-tard{font-size:14.5px;border:1px solid var(--encre)!important;border-radius:12px;padding:10px 16px}
+.b-non{font-size:14px;text-decoration:underline;color:#c2410c}html[data-theme=sombre] .b-non{color:#f08a76}
+.b-ret{font-size:14px;border:1px solid var(--bord)!important;border-radius:12px;padding:9px 14px}
+.acts small{font-size:12.5px;color:var(--gris2)}
+.entre{animation:entre .45s cubic-bezier(.16,1,.3,1) both}@keyframes entre{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.entre{animation:none}.it{transition:none}}
+@media (max-width:1000px){body.ide{height:auto;overflow:auto}.ide main{position:static;margin-top:var(--nav);grid-template-columns:1fr}.deux{grid-template-columns:1fr}}
+</style>
+</head>
+<body data-ecran="idees" class="ide">
+<main>
+  <section class="gauche" aria-label="Les idées"><h1>La boîte à idées</h1><span>Des idées rangées par Jarvis. Tu choisis, il prépare la mission.</span><div id="liste" style="display:contents"></div></section>
+  <section class="droite" aria-label="L’idée choisie" aria-live="polite" id="fiche"></section>
+</main>
+<script src="app.js"></script>
+<script>
+'use strict';
+/* Les illustrations des bandeaux : recopiées de la maquette (R_Idees.dc.html), une par idée de départ (HTML fixe, aucune donnée). */
+const ILL = {
+"entretien": "<div style=\"display:flex;flex-direction:column;gap:5px;width:100%\"><span style=\"align-self:flex-start;background:#fff;color:#1b2318;border-radius:12px 12px 12px 3px;padding:5px 10px;font-size:12px\">Explique-moi la vitrine en 30 s.</span><span style=\"align-self:flex-end;display:flex;gap:3px;align-items:center;background:#8fb3ff;border-radius:12px 12px 3px 12px;padding:8px 10px\"><i style=\"width:3px;height:8px;background:#1b2350\"></i><i style=\"width:3px;height:16px;background:#1b2350\"></i><i style=\"width:3px;height:11px;background:#1b2350\"></i><i style=\"width:3px;height:18px;background:#1b2350\"></i><i style=\"width:3px;height:9px;background:#1b2350\"></i><i style=\"width:3px;height:14px;background:#1b2350\"></i></span></div>",
+"memoire": "<div style=\"display:flex;flex-direction:column;gap:3px;width:100%;font-size:11.5px;color:#eef0fa\"><span style=\"display:flex;justify-content:space-between;background:rgba(255,255,255,.1);border-radius:7px;padding:3px 8px\">Ville fictive <u>Corriger</u></span><span style=\"display:flex;justify-content:space-between;background:rgba(255,255,255,.1);border-radius:7px;padding:3px 8px\">Langue d’exemple <u>Oublier</u></span><span style=\"display:flex;justify-content:space-between;background:rgba(255,255,255,.1);border-radius:7px;padding:3px 8px\">Stage fictif <u>Oublier</u></span></div>",
+"nuit": "<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%\"><span style=\"height:62px;border-radius:10px;background:#f4f1e8;display:flex;flex-direction:column;gap:4px;padding:7px\"><i style=\"height:7px;width:60%;background:#1b2318;border-radius:2px\"></i><i style=\"height:5px;width:85%;background:#c9d2c4;border-radius:2px\"></i></span><span style=\"height:62px;border-radius:10px;background:#1b1f33;display:flex;flex-direction:column;gap:4px;padding:7px;box-shadow:0 0 0 1px #343a6e\"><i style=\"height:7px;width:60%;background:#ece8ff;border-radius:2px\"></i><i style=\"height:5px;width:85%;background:#343a6e;border-radius:2px\"></i></span></div>",
+"fiche": "<div style=\"background:#fff;border-radius:8px;padding:8px 10px;width:210px;display:flex;flex-direction:column;gap:4px;color:#1b2318;font-size:11px\"><b style=\"font-size:12px\">Entreprise X · la fiche</b><i style=\"height:5px;width:90%;background:#c9d2c4;border-radius:2px\"></i><i style=\"height:5px;width:72%;background:#c9d2c4;border-radius:2px\"></i><span style=\"margin-top:2px\">3 questions à poser :</span><span style=\"color:#5b5f97\">1. … · 2. … · 3. …</span></div>",
+"relance": "<div style=\"display:flex;gap:10px;align-items:center;color:#fff\"><span style=\"width:54px;height:60px;border-radius:10px;background:#fff;color:#b5561f;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family: 'Fraunces', serif;font-weight:800\"><span style=\"font-size:11px;font-family:Work Sans,sans-serif;font-weight:600\">J+</span><span style=\"font-size:26px;line-height:1\">7</span></span><span style=\"background:rgba(255,255,255,.16);border-radius:12px 12px 12px 3px;padding:7px 10px;font-size:12px;max-width:180px;line-height:1.35\">Bonjour, je reviens vers vous au sujet de ma candidature…</span></div>",
+"demo": "<div style=\"display:flex;flex-direction:column;gap:5px;width:100%;font-size:12px;color:#fbf3e7\"><span>Mail de <span style=\"background:#fbf3e7;color:transparent;border-radius:3px\">Personne Exemple</span></span><span>Offre <span style=\"background:#fbf3e7;color:transparent;border-radius:3px\">Exemple Services · Ville Exemple</span></span><span style=\"align-self:flex-start;margin-top:6px;background:#b5561f;border-radius:999px;padding:4px 10px\">▶ Visite guidée · 1/6</span></div>",
+"avantapres": "<div style=\"position:relative;width:100%;height:84px;border-radius:10px;overflow:hidden;display:grid;grid-template-columns:1fr 1fr\"><span style=\"background:repeating-linear-gradient(0deg,#cfd6c8 0 8px,#e9ede5 8px 16px)\"></span><span style=\"background:#fffaf2;display:flex;flex-direction:column;gap:5px;padding:8px\"><i style=\"height:10px;width:70%;background:#2f6b3d;border-radius:3px\"></i><i style=\"height:6px;width:90%;background:#c9d2c4;border-radius:3px\"></i><i style=\"height:6px;width:60%;background:#c9d2c4;border-radius:3px\"></i></span><span style=\"position:absolute;left:50%;top:0;bottom:0;width:3px;background:#fff;box-shadow:0 0 0 1px #2f6b3d\"></span><span style=\"position:absolute;left:calc(50% - 11px);top:31px;width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid #2f6b3d;font-size:11px;display:grid;place-items:center;color:#2f6b3d\">⇆</span></div>",
+"zero": "<div style=\"display:flex;align-items:baseline;gap:12px;color:#241c14\"><b style=\"font-family: 'Fraunces', serif;font-size:46px;line-height:1\">0 €</b><span style=\"font-size:12.5px;line-height:1.35\">payés<br><s style=\"opacity:.7\">≈ 37 € au prix public</s><br><span style=\"font-size:10.5px;opacity:.7\">(chiffre d’exemple)</span></span></div>",
+"journee": "<div style=\"position:relative;width:100%;display:flex;flex-direction:column;gap:6px\"><span style=\"display:flex;gap:4px;align-items:center;font-size:10.5px;color:#9a96c8\"><b style=\"width:56px;color:#ece8ff;font-weight:500\">Emploi</b><i style=\"margin-left:20%;width:12%;height:9px;background:#8fb3ff;border-radius:3px\"></i><i style=\"margin-left:8%;width:6%;height:9px;background:#8fb3ff;border-radius:3px\"></i></span><span style=\"display:flex;gap:4px;align-items:center;font-size:10.5px\"><b style=\"width:56px;color:#ece8ff;font-weight:500\">Mails</b><i style=\"margin-left:5%;width:38%;height:9px;background:#f87171;border-radius:3px\"></i></span><span style=\"display:flex;gap:4px;align-items:center;font-size:10.5px\"><b style=\"width:56px;color:#ece8ff;font-weight:500\">Code</b><i style=\"margin-left:45%;width:10%;height:9px;background:#5fd39a;border-radius:3px\"></i></span><span style=\"font-size:10.5px;color:#f87171\">↑ Mails : 166 s avec l’IA locale</span></div>",
+"aide": "<div style=\"display:flex;gap:10px;align-items:center;color:#fff3e8\"><b style=\"width:44px;height:44px;border-radius:12px;background:#fff3e8;color:#7a3410;display:grid;place-items:center;font-size:24px;font-family: 'Fraunces', serif\">?</b><span style=\"font-size:12.5px;line-height:1.4\">Cette page montre tes IA.<br>Clique une IA pour la tester.</span></div>",
+"objectif": "<div style=\"display:flex;flex-direction:column;gap:6px;width:100%;color:#241c14\"><span style=\"font-size:12.5px\"><b>3 / 5</b> candidatures · +150 XP</span><span style=\"height:10px;border-radius:99px;background:rgba(36,28,20,.2);overflow:hidden\"><i style=\"display:block;width:60%;height:100%;background:#241c14\"></i></span><span style=\"font-size:11.5px\">Encore 2 avant dimanche</span></div>"
+};
+const G = [['mission', 'Dans la Mission 15', 'var(--vert-a)'], ['veux', 'Tu les veux · prochaine mission', 'var(--orange-t)'], ['libre', 'À regarder', 'var(--gris2)'], ['tard', 'Plus tard', 'var(--gris2)'], ['non', 'Pas pour moi', 'var(--gris)']];
+const LAB = {mission: '✓ Dans la Mission 15', veux: '✓ Tu la veux', libre: 'À regarder', tard: 'Plus tard', non: 'Pas pour moi'};
+let I = [], sel = null;
+const coul = x => x.couleur || '#5b5f97';
+function liste() {
+  const z = $('liste'); z.replaceChildren();
+  for (const [k, nom, c] of G) {
+    const l = I.filter(x => x.statut === k); if (!l.length) continue;
+    const g = el('span', 'grp', `${nom} · ${l.length}`); g.style.color = c; z.append(g);
+    for (const x of l) { const b = bouton('', '', () => { sel = x.id; liste(); fiche(); }); b.className = 'it' + (k === 'non' ? ' non' : '');
+      b.style.setProperty('--c', coul(x)); b.setAttribute('aria-current', x.id === sel);
+      const m = el('span', 'm'); m.append(el('b', '', x.titre), el('span', '', x.court)); b.append(el('i'), m, el('span', 'e', x.effort)); z.append(b); }
+  }
+}
+function fiche() {
+  const x = I.find(y => y.id === sel), z = $('fiche'); z.replaceChildren(); if (!x) return;
+  const a = el('article', 'fi entre'); a.style.setProperty('--c', coul(x));
+  const band = el('div', 'band'), ill = el('div', 'ill');
+  if (ILL[x.id]) ill.innerHTML = ILL[x.id]; else ill.append(el('span', 'tj', x.titre));  // une idée de Jarvis : son titre, en texte
+  band.append(ill);
+  const c = el('div', 'corps'), meta = el('div', 'meta');
+  meta.append(el('span', 'st ' + x.statut, LAB[x.statut]), el('span', '', `${x.besoin} · effort ${x.effort.toLowerCase()}`));
+  c.append(meta, el('b', '', x.titre), el('span', 'ap', x.apporte));
+  const d = el('div', 'deux');
+  if (x.etapes.length) { const cm = el('div', 'cm'), ol = el('ol'); cm.append(el('span', '', 'Comment ça marcherait'));
+    x.etapes.forEach((e, k) => { const li = el('li'); li.append(el('b', '', String(k + 1)), el('span', '', e)); ol.append(li); }); cm.append(ol); d.append(cm); }
+  if (x.entretien) { const e = el('div', 'ent'); e.append(el('span', '', 'En entretien'), el('span', '', '« ' + x.entretien + ' »')); d.append(e); }
+  if (d.children.length) c.append(d);
+  const acts = el('div', 'acts'), b = (t, cls, st) => { const k = bouton(t, '', () => choisir(st)); k.className = cls; return k; };
+  if (x.statut === 'libre' || x.statut === 'tard') acts.append(b('✓ Je veux', 'b-veux', 'veux'), b('Plus tard', 'b-tard', 'tard'), b('Pas pour moi', 'b-non', 'non'));
+  else if (x.statut === 'veux') acts.append(b('↶ Je ne la veux plus', 'b-ret', 'libre'), el('small', '', 'Rien n’est lancé : elle attend la prochaine mission.'));
+  else if (x.statut === 'non') acts.append(b('↶ Remettre dans « À regarder »', 'b-ret', 'libre'));
+  else acts.append(el('small', '', 'Elle est faite dans cette mission.'));
+  c.append(acts); a.append(band, c); z.append(a);
+}
+async function choisir(st) {
+  try { I = (await api('/idees/choisir', {id: sel, statut: st})).idees;
+    toast({veux: 'Notée pour la prochaine mission. Rien n’est lancé.', tard: 'Rangée dans « Plus tard ».', non: 'Rangée dans « Pas pour moi ».', libre: 'Remise dans « À regarder ».'}[st]);
+    liste(); fiche(); } catch (e) { toast('Petit souci : ' + e.message); }
+}
+api('/idees').then(d => { I = d.idees; const v = (location.hash.match(/i=([\w-]+)/) || [])[1];
+  sel = (I.find(x => x.id === v) || I.find(x => x.statut === 'libre') || I[0] || {}).id; liste(); fiche(); })
+  .catch(e => $('fiche').replaceChildren(el('p', '', 'Jarvis ne répond pas : ' + e.message)));
+</script>
+</body>
+</html>

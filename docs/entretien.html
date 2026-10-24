@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Entretien · Jarvis</title>
+<meta name="description" content="Entraînement d'entretien : Jarvis pose une question sur tes vrais projets, tu réponds à voix haute, il te dit ce qui manquait.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8' fill='%23b5561f'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="lib/fonts/fonts.css">
+<link rel="stylesheet" href="app.css">
+<style>
+/* Mission 15, étape 13 : l'entraînement d'entretien (maquette R_Entretien, images 16 à 18). Le micro ne s'ouvre qu'au clic ;
+   le son part en PCM vers Jarvis (127.0.0.1), Whisper le transcrit sur le PC, le fichier est effacé tout de suite. */
+body.ent{height:100vh;overflow:hidden;background:var(--fond);color:var(--encre);font-family:'Work Sans',sans-serif}
+.ent main{position:fixed;inset:var(--nav) 0 0 0;display:grid;grid-template-columns:250px minmax(0,1fr) 360px;gap:22px;padding:16px 28px 18px}
+.suj{display:flex;flex-direction:column;gap:8px;min-height:0}.suj h1{margin:0 0 4px;font:600 28px 'Fraunces',serif}.suj>span{font-size:13px;color:var(--gris2);margin-bottom:4px}
+.liste{display:flex;flex-direction:column;gap:8px;min-height:0;overflow:auto}
+.sujet{color:inherit;text-align:left;display:flex;gap:10px;align-items:center;border-radius:12px;padding:10px 12px;border:1px solid var(--bord);font-size:14.5px;transition:transform .15s,background .2s}
+.sujet:hover{transform:translateX(3px)}.sujet[aria-current=true]{border:2px solid var(--encre);background:var(--carte)}.sujet i{width:10px;height:10px;border-radius:50%;background:var(--c);flex:none}
+.sem{margin-top:auto;background:var(--carte);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;box-shadow:0 1px 0 var(--bord)}
+.sem b{font-size:13px}.sem span{font-size:13px;color:var(--encre2)}.sem .p{font-size:12.5px;color:var(--vert-a)}.sem .t{font-size:12.5px;color:var(--orange-t)}
+.centre{display:flex;flex-direction:column;gap:14px;min-height:0}
+.q{background:#1b2318;color:#eef3e8;border-radius:24px;padding:22px 26px;display:flex;flex-direction:column;gap:10px}
+html[data-theme=sombre] .q{background:#1d2029;border:1px solid var(--bord)}
+.q small{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:#9fd3a8}
+.q b{font:600 25px/1.22 'Fraunces',serif;text-wrap:balance}.q>span{display:flex;gap:10px;align-items:center;font-size:13px;color:#c9d6c3}
+.q button{font-size:13px;border:1px solid #4b5a45;color:#eef3e8;border-radius:999px;padding:6px 13px}
+.zone{flex:1;min-height:0;background:var(--carte);border-radius:24px;box-shadow:0 1px 0 var(--bord);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:18px 24px;text-align:center;overflow:auto}
+.micro{width:112px;height:112px;border-radius:50%;background:#b5561f;color:#fff;box-shadow:0 14px 30px rgba(181,86,31,.35);display:grid;place-items:center;flex:none}
+.zone>b{font-size:17px}.zone>span{font-size:13.5px;color:var(--gris2)}.zone .mono{font-family:'JetBrains Mono',monospace}
+.ecoute{display:flex;gap:5px;align-items:center;justify-content:center;animation:anneau 1.3s ease-out infinite}
+.onde{display:flex;gap:5px;align-items:center;height:44px}.onde i{display:block;width:5px;border-radius:3px;background:#fff;animation:onde .9s ease-in-out infinite}
+@keyframes onde{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+@keyframes anneau{0%{box-shadow:0 0 0 0 rgba(181,86,31,.55)}100%{box-shadow:0 0 0 26px rgba(181,86,31,0)}}
+.tourne{width:46px;height:46px;border-radius:50%;border:4px solid var(--fond2);border-top-color:#b5561f;display:block;animation:tourne 1s linear infinite}
+@keyframes tourne{to{transform:rotate(360deg)}}
+.fini{align-self:stretch;text-align:left;display:flex;flex-direction:column;gap:10px}
+.fini small{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--gris)}.fini p{margin:0;font-size:15.5px;line-height:1.55;font-style:italic}
+.mieux{background:var(--vert-c2);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}.mieux b{font-size:13px;color:var(--vert-a)}.mieux span{font-size:14.5px;line-height:1.5}
+.btns{display:flex;gap:8px;flex-wrap:wrap}.btns button{font-size:14px;border-radius:12px;padding:10px 16px}
+.b-or{background:#b5561f;color:#fff}.b-li{border:1px solid var(--encre)!important}.b-ga{border:1px solid var(--bord)!important;color:var(--vert-a)}
+aside{background:var(--carte);border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:10px;box-shadow:0 1px 0 var(--bord);min-height:0;overflow:auto}
+aside>b{font:600 21px 'Fraunces',serif}aside>span{font-size:14px;line-height:1.55;color:var(--gris2)}
+.crit{display:flex;flex-direction:column;gap:3px;border-radius:12px;padding:10px 12px}.crit b{display:flex;justify-content:space-between;font-size:14px}.crit span{font-size:13px;line-height:1.45;color:#3d4236}
+.crit.ok{background:#e3f1e6;color:#2f8a49}.crit.moyen{background:#fbf0d9;color:#b26d0a}.crit.non{background:#fbe4dc;color:#c2410c}
+html[data-theme=sombre] .crit.ok{background:#22352a;color:#7fd18f}html[data-theme=sombre] .crit.moyen{background:#3a3220;color:#e0b75a}html[data-theme=sombre] .crit.non{background:#3a2a26;color:#f08a76}
+html[data-theme=sombre] .crit span{color:var(--encre2)}
+.chif{margin-top:auto;display:flex;justify-content:space-between;font-size:13px;color:var(--encre2)}
+.pied{margin-top:auto;font-size:12.5px;color:var(--gris);line-height:1.5}
+.entre{animation:entre .45s cubic-bezier(.16,1,.3,1) both}@keyframes entre{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.entre,.onde i,.ecoute,.tourne{animation:none}.sujet{transition:none}}
+@media (max-width:1000px){body.ent{height:auto;overflow:auto}.ent main{position:static;margin-top:var(--nav);grid-template-columns:1fr}}
+</style>
+</head>
+<body data-ecran="entretien" class="ent">
+<main>
+  <nav class="suj" aria-label="Sujets">
+    <h1>Entraînement</h1><span>Jarvis te pose une question sur tes vrais projets. Tu réponds à voix haute.</span>
+    <div class="liste" id="sujets"></div>
+    <div class="sem" id="sem"></div>
+  </nav>
+  <section class="centre" aria-label="La question">
+    <article class="q entre" id="q"><small>Le recruteur demande</small><b>…</b></article>
+    <div class="zone" id="zone" aria-live="polite"></div>
+  </section>
+  <aside aria-label="Le retour de Jarvis" id="retour"></aside>
+</main>
+<script src="demo.js"></script>
+<script src="app.js"></script>
+<script>
+'use strict';
+const COUL = ['#c9971f', '#2f6b3d', '#5b5f97', '#3a4a8c', '#151a2e', '#b5561f', '#7a3410'];
+const MICRO = '<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path></svg>';
+const IC = {ok: '✓', moyen: '≈', non: '✕'}, NOMS = {clair: 'Clair', concret: 'Concret', resultat: 'Le résultat', appris: 'Ce que tu as appris'};
+let S = [], sujet = null, Q = '', erreur = '', etape = 'attente', rec = null, flux = null, morceaux = [], debut = 0, minuteur = null, R = null, T = null;
+function couleur(s, k) { return s.id === 'experience' ? '#7a6548' : s.id === 'surprise' ? '#b5561f' : COUL[k % COUL.length]; }
+function gauche(bilan) {
+  const z = $('sujets'); z.replaceChildren();
+  S.forEach((s, k) => { const b = bouton('', '', () => choisir(s.id)); b.className = 'sujet'; b.setAttribute('aria-current', s.id === sujet);
+    b.style.setProperty('--c', couleur(s, k)); b.append(el('i'), s.nom); z.append(b); });
+  if (!bilan) return;
+  const m = $('sem'); m.replaceChildren(el('b', '', 'Cette semaine'));
+  if (!bilan.questions) { m.append(el('span', '', 'Rien de gardé pour l’instant. Clique « Garder » après une réponse pour suivre tes progrès.')); return; }
+  m.append(el('span', '', `${bilan.questions} question${bilan.questions > 1 ? 's' : ''} · ${Math.floor(bilan.secondes / 60)} min ${String(bilan.secondes % 60).padStart(2, '0')} de parole`));
+  if (bilan.progres) m.append(el('span', 'p', `Tu progresses sur « ${bilan.progres} »`));
+  if (bilan.travail) m.append(el('span', 't', 'À travailler : ' + bilan.travail));
+}
+function question() {
+  const s = S.find(x => x.id === sujet), a = $('q'); a.replaceChildren(el('small', '', 'Le recruteur demande · ' + (s ? s.nom : '')), el('b', '', Q ? '« ' + Q + ' »' : erreur || 'Jarvis prépare une question…'));
+  const l = el('span'), b = bouton('▶ Écouter la question', '', ecouter); b.className = ''; l.append(b, 'Lue par la voix de Windows, sur ton PC'); a.append(l);
+}
+function ecouter() {
+  if (!Q || !window.speechSynthesis) return; speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(Q), v = speechSynthesis.getVoices().find(x => /^fr/i.test(x.lang)); u.lang = 'fr-FR'; if (v) u.voice = v; speechSynthesis.speak(u);
+}
+function zone() {
+  const z = $('zone'); z.replaceChildren();
+  if (etape === 'attente') { const b = bouton('', '', parler); b.className = 'micro'; b.innerHTML = MICRO; b.setAttribute('aria-label', 'Appuie et parle'); b.disabled = !Q;
+    z.append(b, el('b', '', 'Appuie, et réponds comme en entretien'), el('span', '', 'Idéal : 30 à 60 secondes. Le son reste sur ton PC (Whisper), il est effacé après la transcription.')); }
+  else if (etape === 'parle') { const b = bouton('', '', arreter); b.className = 'micro ecoute'; b.setAttribute('aria-label', 'Arrêter');
+    const o = el('span', 'onde'); [[22, 0], [40, -.2], [30, -.5], [44, -.1], [26, -.7]].forEach(([h, d]) => { const i = el('i'); i.style.height = h + 'px'; i.style.animationDelay = d + 's'; o.append(i); });
+    b.append(o); const t = el('b', 'mono', '0:00'); t.id = 'temps'; z.append(b, t, el('span', '', 'Je t’écoute… clique pour terminer (90 s au plus).')); }
+  else if (etape === 'transcrit') z.append(el('span', 'tourne'), el('span', '', T ? 'Jarvis prépare son retour…' : 'Whisper transcrit ta réponse sur ton PC…'));
+  else { const f = el('div', 'fini entre'), p = el('p', '', '« ' + (T.texte || '(rien entendu)') + ' »'); f.append(el('small', '', `Ta réponse · ${T.duree} s`), p);
+    if (R) { const m = el('div', 'mieux'); m.append(el('b', '', 'Ta réponse en mieux (avec tes vrais faits, rien d’inventé)'), el('span', '', R.mieux || '—')); f.append(m); }
+    const bs = el('div', 'btns'), a = bouton('Réessayer', '', () => { etape = 'attente'; T = R = null; tout(); }), s = bouton('Question suivante →', '', suivante);
+    a.className = 'b-or'; s.className = 'b-li'; bs.append(a, s);
+    if (R) { const g = bouton('Garder', '', garder); g.className = 'b-ga'; g.title = 'Garder cette réponse pour le bilan de la semaine'; bs.append(g); }
+    f.append(bs); z.append(f); }
+}
+function droite() {
+  const z = $('retour'); z.replaceChildren(el('b', '', 'Le retour de Jarvis'));
+  if (etape !== 'fini' || !R) { z.append(el('span', '', 'Après ta réponse, je regarde 4 choses : est-ce clair, concret, est-ce que tu dis le résultat, et ce que tu as appris. Puis je te propose une version meilleure, avec seulement tes vrais faits (ta page Moi).'),
+    el('div', 'pied', 'Rien n’est envoyé à un recruteur. Rien n’est gardé sans ton clic « Garder ».')); return; }
+  Object.entries(NOMS).forEach(([k, n], i) => { const c = R.criteres[k], d = el('div', 'crit entre ' + c.e), b = el('b', '', n); b.append(el('span', '', IC[c.e]));
+    d.style.animationDelay = i * .1 + 's'; d.append(b, el('span', '', c.x)); z.append(d); });
+  const ch = el('div', 'chif'); ch.append(el('span', '', `Durée : ${T.duree} s ${R.duree_ok ? '✓' : '(idéal 30 à 60 s)'}`), el('span', '', `« euh » : ${T.euh}`), el('span', '', `Mots : ${T.mots}`)); z.append(ch);
+}
+const tout = () => { gauche(); question(); zone(); droite(); };
+async function choisir(id, nouvelle = false) {
+  sujet = id; Q = ''; etape = 'attente'; T = R = null; tout();
+  erreur = ''; try { Q = (await api('/entretien/question', {sujet: id, nouvelle})).question; } catch (e) { Q = ''; erreur = e.message; }
+  if (sujet === id) tout();
+}
+function suivante() { const k = S.findIndex(x => x.id === sujet); choisir(S[(k + 1) % S.length].id, true); }
+async function parler() {
+  try { flux = await navigator.mediaDevices.getUserMedia({audio: true}); } catch (e) { toast('Micro refusé ou absent : autorise-le dans Edge (icône à gauche de l’adresse).'); return; }
+  morceaux = []; rec = new MediaRecorder(flux); rec.ondataavailable = e => morceaux.push(e.data); rec.onstop = envoyer; rec.start();
+  etape = 'parle'; debut = Date.now(); zone();
+  minuteur = setInterval(() => { const s = Math.floor((Date.now() - debut) / 1000), t = $('temps'); if (t) t.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); if (s >= 90) arreter(); }, 250);
+}
+function arreter() { clearInterval(minuteur); if (rec && rec.state !== 'inactive') rec.stop(); if (flux) flux.getTracks().forEach(t => t.stop()); flux = null; }
+async function envoyer() {
+  const sec = Math.round((Date.now() - debut) / 1000); etape = 'transcrit'; T = R = null; zone();
+  try {
+    const son = await new AudioContext().decodeAudioData(await new Blob(morceaux).arrayBuffer());  // ramené en 16 kHz mono, 16 bits
+    const oc = new OfflineAudioContext(1, Math.ceil(son.duration * 16000), 16000), src = oc.createBufferSource(); src.buffer = son; src.connect(oc.destination); src.start();
+    const f = (await oc.startRendering()).getChannelData(0), pcm = new Int16Array(f.length);
+    for (let i = 0; i < f.length; i++) pcm[i] = Math.max(-1, Math.min(1, f[i])) * 32767;
+    let bin = ''; const o = new Uint8Array(pcm.buffer); for (let i = 0; i < o.length; i += 0x8000) bin += String.fromCharCode.apply(null, o.subarray(i, i + 0x8000));
+    morceaux = [];
+    T = await api('/entretien/transcrire', {pcm: btoa(bin), sec}); zone();
+    if (T.texte) R = await api('/entretien/retour', {sujet, question: Q, reponse: T.texte, duree: T.duree});
+  } catch (e) { toast('Petit souci : ' + e.message); if (!T) { etape = 'attente'; zone(); return; } }
+  etape = 'fini'; zone(); droite();
+}
+async function garder() {
+  try { const b = await api('/entretien/garder', {sujet, question: Q, reponse: T.texte, duree: T.duree, euh: T.euh, mots: T.mots, criteres: R.criteres});
+    toast('Gardé pour ton bilan de la semaine.'); gauche(b); } catch (e) { toast('Petit souci : ' + e.message); }
+}
+api('/entretien').then(d => { S = d.sujets; gauche(d.bilan); choisir(S[0].id); }).catch(e => $('zone').replaceChildren(el('p', '', 'Jarvis ne répond pas : ' + e.message)));
+</script>
+</body>
+</html>

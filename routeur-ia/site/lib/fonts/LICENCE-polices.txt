@@ -1,0 +1,4 @@
+Polices : Inter, Space Grotesk, Fraunces, JetBrains Mono, Work Sans (mission 14, @fontsource/work-sans 5.0.8).
+Toutes sous licence SIL Open Font License 1.1 (libres d'usage, y compris commercial).
+Source : paquets @fontsource-variable (npm). Licence complète : https://openfontlicense.org
+Cinzel, Cormorant Garamond : SIL Open Font License 1.1 (fontsource)

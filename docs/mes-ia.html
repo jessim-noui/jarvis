@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mes IA · Jarvis</title>
+<meta name="description" content="Où sont tes IA : sur ton PC ou en ligne, leur rôle, leur chaîne de secours, leurs appels de la semaine.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8' fill='%23b5561f'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="lib/fonts/fonts.css">
+<link rel="stylesheet" href="app.css">
+<style>
+/* Mission 15 : Mes IA (maquette R_MesIA, images 10, 10b, 10c). Remplace « Choisir une IA » et la partie IA de Santé (archives/). */
+body.mesia{height:100vh;overflow:hidden;background:var(--fond);color:var(--encre);font-family:'Work Sans',sans-serif}
+.mesia main{position:fixed;inset:var(--nav) 0 0 0;display:grid;grid-template-columns:300px minmax(0,1fr) 370px;gap:18px;padding:14px 28px 16px;border-top:1px solid var(--bord)}
+.pc{background:#1b2318;color:#eef3e8;border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:9px;min-height:0;overflow:auto}
+.pc .sur{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#9fd3a8}
+.clS{text-align:left;color:inherit;border:1px solid #34402f;border-radius:13px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;transition:background .2s,border-color .2s}
+.clS:hover{background:#222c1d}.clS[aria-current=true]{border-color:#9fd3a8;background:#26321f}
+.clS .l1{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.clS .chev{color:#9fd3a8}
+.gpu b{font:600 21px 'Fraunces',serif}.jauge{height:8px;border-radius:99px;background:#2f3a2b;overflow:hidden;display:block}.jauge i{display:block;height:100%;background:#5fd39a}
+.pc small{font-size:12px;color:#a9b7a3}.pc .role{font-size:12.5px;color:#c9d6c3}
+.ollama{flex-direction:row;align-items:center;gap:10px}.ollama .v{width:9px;height:9px;border-radius:50%;flex:none}
+.pc .bas{margin:auto 0 0;font-size:12px;color:#a9b7a3;line-height:1.5}.pc code,.pc .mono{font-family:'JetBrains Mono',monospace;color:#eef3e8}
+.centre{display:flex;flex-direction:column;gap:8px;min-height:0}
+.centre .t{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}.centre h1{font:600 30px 'Fraunces',serif;margin:0}.centre .t span{font-size:13.5px;color:var(--gris2)}
+.filtres{display:flex;gap:6px}
+.filtres button{font-size:13px;border-radius:999px;padding:6px 12px;border:1px solid var(--bord);color:var(--encre)}
+.filtres button[aria-pressed=true]{background:var(--encre);border-color:var(--encre);color:var(--fond)}
+.groupes{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px;align-content:start}
+.colonne{display:flex;flex-direction:column;min-width:0}
+.groupe{display:flex;flex-direction:column;margin-bottom:6px}
+.cl{display:flex;gap:9px;align-items:center;text-align:left;border-radius:10px;padding:6px 9px;transition:background .2s}
+.cl:hover{background:var(--carte)}.cl .chev{opacity:0;color:var(--gris);transition:opacity .2s}.cl:hover .chev{opacity:1}
+.g-tete{border-bottom:1px solid var(--bord);border-radius:8px 8px 0 0;padding:8px 9px 4px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gris)}
+.g-tete span:first-child{flex:1}.g-tete .n{font-family:'JetBrains Mono',monospace}
+.cl[aria-current=true]{background:var(--carte)}.ligne[aria-current=true]{box-shadow:inset 3px 0 0 var(--orange)}
+.ligne{line-height:1.25}.ligne .nom{flex:1;min-width:0}.ligne b{font-size:13.5px;font-weight:600}
+.ligne small{display:block;font-size:11.5px;color:var(--gris2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ligne small.alerte{color:#c2410c}
+.vit{font:11.5px 'JetBrains Mono',monospace;color:var(--gris2)}
+.voy{border-radius:50%;flex:none;display:inline-block}
+.centre .pied{font-size:11.5px;color:var(--gris)}
+.detail{background:var(--carte);border-radius:20px;padding:16px 18px;display:flex;flex-direction:column;gap:10px;box-shadow:0 1px 0 var(--bord);min-height:0;overflow:auto}
+.d-sur{font-size:12px;letter-spacing:.1em;text-transform:uppercase;align-self:flex-start;padding:0}
+button.d-sur:hover{text-decoration:underline}
+.d-nom{font:600 26px/1.1 'Fraunces',serif}.d-etat{display:flex;gap:8px;align-items:center;font-size:13.5px}
+.d-note{font-size:12.5px;color:var(--gris2)}.d-txt{font-size:14px;line-height:1.5;color:var(--encre2)}
+.d-t{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gris);margin-top:2px}
+.chaine{display:flex;flex-direction:column;gap:5px}.chaine b{font-size:13px}
+.maillons{display:flex;flex-wrap:wrap;gap:4px;align-items:center}.maillons .fl{color:var(--gris);font-size:12px}
+.maillon{font-size:12px;border-radius:999px;padding:4px 10px;border:1px solid var(--bord);color:var(--encre);transition:background .15s}
+.maillon:hover{background:var(--creux)}.maillon.on{background:var(--encre);border-color:var(--encre);color:var(--fond)}
+.barres{display:flex;gap:5px;align-items:flex-end;height:34px}.barres span{width:16px;border-radius:4px 4px 2px 2px;background:var(--bord2)}.barres span.x{background:var(--orange)}
+.encart{background:var(--creux);border-radius:12px;padding:9px 11px;font-size:12.5px;line-height:1.5}.encart .mono{font:11.5px 'JetBrains Mono',monospace;overflow-wrap:anywhere}
+.encart.rouge{background:var(--rose);color:#7a2e12}
+html[data-theme=sombre] .encart.rouge{color:#f3b3a0}
+.boutons{display:flex;gap:8px;flex-wrap:wrap}
+.b-noir{font-size:13.5px;border-radius:10px;padding:9px 14px;background:var(--encre);color:var(--fond)}.b-noir:disabled{opacity:.6;cursor:progress}
+.b-clair{font-size:13.5px;border:1px solid var(--bord);border-radius:10px;padding:9px 14px}.b-clair:disabled{opacity:.6;cursor:default}
+.qui{display:flex;justify-content:space-between;font-size:13.5px;border:1px solid var(--bord);border-radius:10px;padding:7px 10px}.qui .mono{font-family:'JetBrains Mono',monospace;color:var(--gris2)}
+.regles{font-size:13.5px;line-height:1.6}
+.phrase{font-size:13px;color:var(--encre2)}
+@keyframes entre{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.entre{animation:entre .45s cubic-bezier(.16,1,.3,1) both}
+@media (prefers-reduced-motion:reduce){.entre{animation:none}.cl,.clS,.maillon{transition:none}}
+@media (max-width:1100px){body.mesia{height:auto;overflow:auto}.mesia main{position:static;margin-top:var(--nav);grid-template-columns:1fr}.groupes{grid-template-columns:1fr}}
+</style>
+</head>
+<body data-ecran="mes-ia" class="mesia">
+<main>
+  <section class="pc" aria-label="Sur ton PC" id="pc"><span class="sur">Sur ton PC · rien ne sort</span></section>
+  <section class="centre" aria-label="En ligne">
+    <div class="t"><h1>Mes IA</h1><span id="resume">Chargement…</span></div>
+    <div class="filtres" id="filtres"></div>
+    <div class="groupes" id="groupes"></div>
+    <span class="pied">Vitesses et appels : lus dans usage.json (7 derniers jours) · chaînes de secours : les vraies, lues dans config.yaml</span>
+  </section>
+  <aside class="detail" id="detail" aria-label="Détail" aria-live="polite"></aside>
+</main>
+<script src="demo.js"></script>
+<script src="app.js"></script>
+<script>
+'use strict';
+const ETAT = {ok: ['#2f8a49', 'Répond bien'], lent: ['#d68a1c', 'Quota atteint ce soir'], repos: ['#a3a69a', 'Au repos (secours)'],
+              payant: ['#c2410c', 'Payante'], retire: ['#c2410c', 'Retirée, encore listée']};
+const JOURS = ['dim', 'lun', 'mar', 'mer', 'jeu', 'ven', 'sam'];
+let D = null, par = {}, sel = {t: 'ia', id: ''}, f = 'tout', testPhrase = '';
+
+const voy = (i, s) => { const v = el('span', 'voy'); v.style.cssText = `width:${s}px;height:${s}px;background:${ETAT[i.etat][0]};${i.etat === 'ok' ? 'box-shadow:0 0 0 3px ' + ETAT[i.etat][0] + '33' : ''}`; return v; };
+const chaineDe = p => D.chaines.find(c => c.id === p);
+function role1(i) {
+  for (const c of D.chaines) if (c.maillons[0] === i.id) return '1re · ' + c.nom;
+  for (const c of D.chaines) { const k = c.maillons.indexOf(i.id); if (k > 0) return 'secours n°' + k + ' · ' + c.nom; }
+  return i.etat === 'payant' ? 'payante → à retirer' : i.etat === 'retire' ? 'retirée → à enlever' : i.id === 'whisper' ? 'vidéos et entretien' : 'pas utilisée';
+}
+const garde = i => f === 'tout' || (f === 'servent' && (i.etat === 'ok' || i.etat === 'lent')) || (f === 'regarder' && ['lent', 'payant', 'retire'].includes(i.etat));
+const estSel = (t, id) => sel.t === t && sel.id === id;
+function choisir(t, id) { sel = {t, id}; testPhrase = ''; history.replaceState(null, '', '#' + (t === 'ia' ? 'ia=' + id : t === 'four' ? 'four=' + encodeURIComponent(id) : t)); tout(); }
+
+function gauche() {
+  const pc = $('pc'); pc.replaceChildren(el('span', 'sur', 'Sur ton PC · rien ne sort'));
+  const g = D.gpu, b = el('button', 'clS gpu'); b.type = 'button'; b.onclick = () => choisir('gpu', ''); b.setAttribute('aria-current', estSel('gpu', ''));
+  const l1 = el('span', 'l1'); l1.append(el('b', '', g.vu ? g.nom.replace(/^NVIDIA (GeForce )?/, '') + ' · ' + g.total_go + ' Go' : 'Ta carte graphique'), el('span', 'chev', '›'));
+  const j = el('span', 'jauge'), ji = el('i'); ji.style.width = g.vu ? Math.max(2, Math.round(100 * g.utilise_go / g.total_go)) + '%' : '0'; j.append(ji);
+  b.append(l1, j, el('small', '', g.vu ? `Mémoire vidéo : ${String(g.utilise_go).replace('.', ',')} Go sur ${g.total_go} utilisés` : 'Mesurée seulement quand tu es là (nvidia-smi)'));
+  const o = el('button', 'clS ollama'); o.type = 'button'; o.onclick = () => choisir('ollama', ''); o.setAttribute('aria-current', estSel('ollama', ''));
+  const v = el('span', 'v'); v.style.background = D.ollama ? '#5fd39a' : '#8fa58a'; const t = el('span'); t.style.flex = '1';
+  t.append(el('b', '', 'Ollama'), el('small', '', D.ollama ? ' · allumé' : ' · éteint (normal)')); o.append(v, t, el('span', 'chev', '›'));
+  pc.append(b, o);
+  for (const i of D.ias.filter(x => x.ou === 'pc')) {
+    const c = el('button', 'clS'); c.type = 'button'; c.onclick = () => choisir('ia', i.id); c.setAttribute('aria-current', estSel('ia', i.id)); c.style.gap = '2px';
+    const l = el('span', 'l1'); l.style.alignItems = 'center'; const n = el('b', '', i.nom); n.style.fontSize = '15px'; l.append(n, voy(i, 9));
+    c.append(l, el('span', 'role', role1(i))); pc.append(c); }
+  const p = el('p', 'bas', 'Tout ce qui est ici se clique. Pour les voir dans Windows : '); p.append(el('span', 'mono', 'ollama list')); pc.append(p);
+}
+function centre() {
+  const net = D.ias.filter(i => i.ou === 'net'), sert = D.ias.filter(i => i.etat === 'ok' || i.etat === 'lent').length, ret = D.ias.filter(i => ['payant', 'retire'].includes(i.etat)).length;
+  $('resume').textContent = `${sert} servent · ${D.ias.length - sert - ret} en secours ou au repos · ${ret} à retirer`;
+  $('filtres').replaceChildren(...[['tout', 'Toutes'], ['servent', 'Celles qui servent'], ['regarder', 'À regarder']].map(([k, n]) => {
+    const b = bouton(n, '', () => { f = k; centre(); }); b.className = ''; b.setAttribute('aria-pressed', f === k); return b; }));
+  const box = $('groupes'), cols = [el('div', 'colonne'), el('div', 'colonne')]; box.replaceChildren(...cols);
+  const fours = [...new Set(net.map(i => i.four))];
+  for (const [k, four] of fours.entries()) {
+    const items = net.filter(i => i.four === four && garde(i)); if (!items.length) continue;
+    const g = el('div', 'groupe'), h = el('button', 'cl g-tete'); h.type = 'button'; h.onclick = () => choisir('four', four); h.setAttribute('aria-current', estSel('four', four));
+    h.append(el('span', '', four), el('span', 'n', net.filter(i => i.four === four).length + ' IA'), el('span', 'chev', '›')); g.append(h);
+    for (const i of items) {
+      const r = el('button', 'cl ligne'); r.type = 'button'; r.onclick = () => choisir('ia', i.id); r.setAttribute('aria-current', estSel('ia', i.id));
+      const n = el('span', 'nom'), rl = role1(i); n.append(el('b', '', i.nom), el('small', ['payant', 'retire'].includes(i.etat) ? 'alerte' : '', rl)); n.lastChild.title = rl;
+      r.append(voy(i, 9), n, el('span', 'vit', i.vit || '—'), el('span', 'chev', '›')); g.append(r); }
+    cols[k % 2].append(g); }
+}
+function puce(i, on) { const b = bouton(i.nom, '', () => choisir('ia', i.id)); b.className = 'maillon' + (on ? ' on' : ''); return b; }
+function detail() {
+  const d = $('detail'); d.replaceChildren(); const w = el('div', 'entre'); w.style.cssText = 'display:flex;flex-direction:column;gap:10px';
+  const titre = (txt, c) => { const s = el('span', 'd-sur', txt); s.style.color = c; return s; };
+  if (sel.t === 'ia' && par[sel.id]) {
+    const i = par[sel.id], pc = i.ou === 'pc', s = bouton((pc ? 'Sur ton PC' : 'En ligne') + ' › ' + i.four, 'd-sur', () => pc ? choisir('ollama', '') : choisir('four', i.four));
+    s.className = 'd-sur'; s.style.color = pc ? 'var(--vert-v)' : 'var(--violet)';
+    const e = el('span', 'd-etat'); e.append(voy(i, 11), ETAT[i.etat][1] + ' · ' + (i.vit ? i.vit + ' en médiane' : 'vitesse pas mesurée'));
+    w.append(s, el('b', 'd-nom', i.nom), e); if (i.note) w.append(el('span', 'd-note', i.note));
+    w.append(el('span', 'd-t', 'Son rôle · si elle tombe →'));
+    const ch = D.chaines.filter(c => c.maillons.includes(i.id));
+    for (const c of ch) { const b = el('div', 'chaine'), m = el('span', 'maillons');
+      c.maillons.forEach((id, k) => { if (par[id]) m.append(puce(par[id], id === i.id)); if (k < c.maillons.length - 1) m.append(el('span', 'fl', '→')); });
+      b.append(el('b', '', (c.maillons[0] === i.id ? '1re de : ' : 'Secours de : ') + c.nom), m); w.append(b); }
+    if (!ch.length) w.append(el('span', 'd-txt', i.id === 'whisper' ? 'Pas dans le routeur : sert pour les vidéos et l’entretien.' : 'Dans aucune chaîne : Jarvis ne l’utilise pas.'));
+    const tot = i.sem.reduce((a, b) => a + b, 0), max = Math.max(1, ...i.sem), br = el('span', 'barres');
+    i.sem.forEach((x, k) => { const b = el('span', x ? 'x' : ''); b.style.height = Math.max(3, Math.round(x / max * 34)) + 'px';
+      b.title = JOURS[new Date(D.jours[k] + 'T12:00').getDay()] + ' ' + D.jours[k].slice(8) + ' : ' + x; br.append(b); });
+    w.append(el('span', 'd-t', 'Cette semaine · ' + tot + ' appel' + (tot > 1 ? 's' : '')), br);
+    const ou = el('div', 'encart'); ou.append(el('b', '', 'Où la trouver'), el('br'), el('span', 'mono', i.ligne ? D.fichier + ', ligne ' + i.ligne : 'jarvis (faster-whisper, installé en Mission 10)')); w.append(ou);
+    if (['payant', 'retire'].includes(i.etat)) { const r = el('div', 'encart rouge'); r.append('Jarvis ne l’utilise pas, mais elle encombre la liste. ', lien('Je les retire ? → la carte dans Décisions', 'decisions.html', '')); w.append(r); }
+    const bt = el('div', 'boutons'), t = bouton(testPhrase ? 'Tester encore' : 'Tester maintenant', '', tester); t.className = 'b-noir';
+    const prem = D.chaines.find(c => c.maillons[0] === i.id), def = prem && D.defaut === prem.id;
+    const m = bouton(def ? '✓ IA par défaut' : 'Mettre par défaut', '', () => defaut(prem.id)); m.className = 'b-clair';
+    if (!prem) { m.disabled = true; m.title = 'Seule la 1re IA d’une chaîne peut être celle par défaut'; }
+    bt.append(t, m); w.append(bt); if (testPhrase) w.append(el('span', 'phrase', testPhrase));
+  } else if (sel.t === 'four') {
+    const fo = D.fournisseurs.find(x => x.nom === sel.id) || {nom: sel.id, desc: '', cle: ''}, ias = D.ias.filter(i => i.four === fo.nom);
+    w.append(titre('Fournisseur', 'var(--violet)'), el('b', 'd-nom', fo.nom), el('span', 'd-txt', fo.desc),
+      el('span', 'd-note', 'Quota du jour : ce fournisseur ne le donne pas. Si une IA est refusée (quota atteint), le routeur passe tout seul à la suivante.'),
+      el('span', 'd-t', 'Ses IA · ' + ias.length));
+    const m = el('span', 'maillons'); m.style.gap = '6px'; ias.forEach(i => m.append(puce(i, false))); w.append(m);
+    if (fo.cle) { const c = el('div', 'encart'); c.append(el('b', '', 'Sa clé'), ' : ' + fo.cle + (fo.nom === 'Ollama Cloud' ? '.' : ', conservée hors du dépôt. Sa valeur n’est jamais affichée.')); w.append(c); }
+  } else if (sel.t === 'gpu') {
+    const g = D.gpu;
+    w.append(titre('Ta carte graphique', 'var(--vert-v)'), el('b', 'd-nom', g.vu ? g.nom + ' · ' + g.total_go + ' Go' : 'Ta carte graphique'),
+      el('span', 'd-txt', 'C’est elle qui fait tourner les IA de ton PC. Une seule IA locale à la fois.' + (g.vu ? ` Utilisée en ce moment : ${String(g.utilise_go).replace('.', ',')} Go.` : ' Mesure seulement quand tu es là.')),
+      el('span', 'd-t', 'Qui peut l’utiliser'));
+    for (const i of D.ias.filter(x => x.ou === 'pc')) { const b = bouton('', '', () => choisir('ia', i.id)); b.className = 'maillon qui';
+      b.append(el('span', '', i.nom), el('span', 'mono', (i.note.match(/≈ \d+ Go/) || [i.id === 'whisper' ? '≈ 1 Go' : ''])[0])); w.append(b); }
+    const c = el('div', 'encart'); c.append('Pour la voir toi-même : ', el('span', 'mono', 'nvidia-smi'));
+    w.append(el('span', 'd-txt', 'Pendant tes jeux, Jarvis libère toute la carte (Mission 13).'), c);
+  } else if (sel.t === 'ollama') {
+    w.append(titre('Sur ton PC', 'var(--vert-v)'), el('b', 'd-nom', 'Ollama · ' + (D.ollama ? 'allumé' : 'éteint')),
+      el('span', 'd-txt', 'Le programme qui fait tourner les IA sur ta carte graphique. ' + (D.ollama ? 'Il s’arrêtera tout seul 2 min après la dernière tâche.' : 'Éteint, c’est normal : il ne démarre que quand une IA locale sert. Cette page ne l’allume jamais.')));
+    const r = el('span', 'regles'); r.append('✓ Démarre seulement pour une tâche privée', el('br'), '✓ S’arrête 2 min après', el('br'), '✓ Jamais pendant un jeu'); w.append(r, el('span', 'd-t', 'Ses IA'));
+    const m = el('span', 'maillons'); m.style.gap = '6px'; D.ias.filter(i => i.four === 'Ollama (ton PC)').forEach(i => m.append(puce(i, false))); w.append(m);
+    const c = el('div', 'encart'); c.append('Pour les voir : ', el('span', 'mono', 'ollama list')); w.append(c);
+  }
+  d.append(w);
+}
+async function tester() {
+  testPhrase = 'Je teste chaque IA (moins d’une minute)…'; detail(); $('detail').querySelector('.b-noir').disabled = true;
+  try { await api('/sante/tester', {});
+    for (let k = 0; k < 60; k++) { await new Promise(r => setTimeout(r, 2000)); const t = await api('/sante/test');
+      if (!t.en_cours && t.resultat) { testPhrase = t.resultat.phrase; break; } }
+  } catch (e) { testPhrase = 'Petit souci : ' + e.message; }
+  detail();
+}
+async function defaut(p) {
+  try { const r = await api('/ia-defaut', {profil: D.defaut === p ? '' : p}); D.defaut = r.choix; toast(r.choix ? 'C’est ton IA par défaut dans le chat.' : 'Retour au choix automatique.'); detail(); }
+  catch (e) { toast('Petit souci : ' + e.message); }
+}
+function tout() { gauche(); centre(); detail(); }
+function depuisHash() {
+  const h = decodeURIComponent(location.hash.slice(1));
+  if (h.startsWith('ia=') && par[h.slice(3)]) sel = {t: 'ia', id: h.slice(3)};
+  else if (h.startsWith('modele=')) { const i = D.ias.find(x => x.modele === h.slice(7)); if (i) sel = {t: 'ia', id: i.id}; }
+  else if (h.startsWith('four=')) sel = {t: 'four', id: h.slice(5)};
+  else if (h === 'gpu' || h === 'ollama') sel = {t: h, id: ''};
+}
+addEventListener('hashchange', () => { if (D) { depuisHash(); tout(); } });
+api('/mes-ia').then(d => {
+  D = d; D.ias.forEach(i => { par[i.id] = i; });
+  sel = {t: 'ia', id: (D.chaines.find(c => c.id === 'jarvis-redaction') || D.chaines[0]).maillons[0]}; depuisHash(); tout();
+}).catch(e => { $('resume').textContent = 'Jarvis ne répond pas : ' + e.message; });
+</script>
+</body>
+</html>

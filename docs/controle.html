@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Panneau de contrôle · Jarvis</title>
+<meta name="description" content="Démarrer, arrêter ou relancer les services de Jarvis, et lancer ses scripts. Toujours avec un clic de confirmation.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8' fill='%23b5561f'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="lib/fonts/fonts.css">
+<link rel="stylesheet" href="app.css">
+<style>
+/* Maquette ControleA : des interrupteurs pour les services, des cartes sombres pour les scripts */
+main.ecran{max-width:1240px}
+.sous-c{color:var(--mut);max-width:70ch;margin-top:6px}
+h2.sec{font-family:'Inter',sans-serif;font-size:17px;margin:26px 0 12px}
+.grille-c{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.serv{background:var(--blanc);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:10px;border:2px solid var(--sombre)}
+.serv.ko{border-color:var(--rouge)}
+.serv .h{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.serv .etat{font-size:14px;color:var(--mut)}.serv.ko .etat{color:var(--rouge)}
+.inter{flex:none;width:48px;height:28px;border-radius:999px;background:#c9bba6;position:relative;transition:background .25s}
+.inter::after{content:'';position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .3s var(--ease)}
+.inter[aria-checked=true]{background:#2f6b3d}.inter[aria-checked=true]::after{transform:translateX(20px)}
+.inter:disabled{cursor:default;opacity:.85}
+.serv .acts{display:flex;flex-direction:column;gap:8px;margin-top:auto}
+.serv .acts .btn{width:100%;min-height:44px;border:0;border-radius:10px;background:var(--bg);font-weight:600}
+.serv.ko .acts .btn:first-child{background:var(--sombre);color:#fff}
+.scr{background:var(--sombre);color:var(--bg);border-radius:18px;padding:18px;display:flex;gap:14px;align-items:center}
+.scr span.t{flex:1;min-width:0}.scr b{display:block}.scr small{font-size:13.5px;color:#c9b9a3}
+.scr .btn{flex:none;min-height:44px;border:0;border-radius:10px;background:#e2733b;color:var(--sombre);font-weight:600}
+.scr .btn:hover{background:#ec8a57}
+</style>
+</head>
+<body data-ecran="plus">
+<main class="ecran">
+  <div class="hors" id="hors">Jarvis est éteint : double-clique sur <b>JARVIS.bat</b>.</div>
+  <h1>Panneau de contrôle</h1>
+  <p class="sous-c">Les services de Jarvis et ses scripts. Chaque bouton demande une confirmation, et seules ces actions-là existent (aucune commande libre). Tu peux aussi le demander à Jarvis dans le chat : il prépare l’action, tu cliques « Confirmer ».</p>
+  <h2 class="sec">Services</h2><div class="grille-c" id="services"></div>
+  <h2 class="sec">Mes scripts</h2><div class="grille-c" id="scripts"></div>
+  <h2 class="sec">Tout arrêter</h2><div class="serv" id="stop"></div>
+</main>
+<script src="demo.js"></script>
+<script src="app.js"></script>
+<script>
+const classe = e => /allum|active|actif|prêt|terminé|lié|connect/i.test(e) && !/éteint|absente|erreur|pause/i.test(e) ? 'ok' : /en cours/i.test(e) ? 'cours' : /éteint|absente|erreur/i.test(e) && !/en pause/i.test(e) ? 'ko' : '';  // en pause = voulu, pas une panne
+const Maj = t => t.charAt(0).toUpperCase() + t.slice(1);
+async function agir(x, a, b) {  // chaque action demande une confirmation (liste blanche côté serveur)
+  if (!confirm(`${Maj(a.nom)} : ${x.nom} ?`)) return;
+  b.disabled = true;
+  try { const r = await api('/controle', {cible: x.id, action: a.id, confirme: true}); toast(r.message); } catch (e) { toast(e.message); }
+  setTimeout(charger, 2500);
+}
+function carteService(x) {  // l'interrupteur montre l'état ET allume/éteint ; les autres actions en boutons
+  const c = classe(x.etat), on = c === 'ok' || c === 'cours', carte = el('div', 'serv' + (c === 'ko' ? ' ko' : ''));
+  const bascule = x.actions.find(a => on ? ['arreter', 'desactiver'].includes(a.id) : ['demarrer', 'activer'].includes(a.id));
+  const i = el('button', 'inter'); i.type = 'button'; i.setAttribute('role', 'switch'); i.setAttribute('aria-checked', on);
+  i.setAttribute('aria-label', `${x.nom} : ${x.etat}`); i.disabled = !bascule; if (bascule) i.onclick = () => agir(x, bascule, i);
+  const h = el('div', 'h'); h.append(el('b', '', x.nom), i);
+  const acts = el('div', 'acts');
+  for (const a of x.actions) if (!['arreter', 'desactiver', 'demarrer', 'activer'].includes(a.id)) acts.append(bouton(a.id === 'lancer' ? 'Lancer maintenant' : Maj(a.nom), '', ev => agir(x, a, ev.target)));
+  if (!x.actions.length) acts.append(el('span', 'dim', 'Se gère avec Jarvis (Réglages).'));
+  carte.append(h, el('span', 'etat', Maj(x.etat)), acts); return carte;
+}
+function carteScript(x) {
+  const c = el('div', 'scr'), t = el('span', 't'); t.append(el('b', '', x.nom), el('small', '', Maj(x.etat)));
+  c.append(t); for (const a of x.actions) c.append(bouton(Maj(a.nom), '', ev => agir(x, a, ev.target))); return c;
+}
+async function charger() {
+  try {
+    const d = await api('/controle'); $('hors').classList.remove('vu');
+    $('services').replaceChildren(...d.elements.filter(x => x.genre === 'service').map(carteService));
+    $('scripts').replaceChildren(...d.elements.filter(x => x.genre === 'script').map(carteScript));
+  } catch (_) { $('hors').classList.add('vu'); }
+}
+charger(); setInterval(charger, 15000);
+$('stop').append(bouton('Tout arrêter', 'danger', () => toutArreter($('stop'))));
+</script>
+</body>
+</html>

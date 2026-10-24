@@ -1,0 +1,23 @@
+# Secrets et données perso : jamais dans git
+secrets/
+*.env
+.env*
+jarvis/donnees/
+jarvis/memoire/
+routeur-ia/routeur/config.yaml
+# Fichiers générés
+__pycache__/
+*.pyc
+*.db
+*.log
+*.lock
+sauvegardes/
+# Fichiers créés par les tests : jamais publiés
+.test-tmp/
+.audit-tests.log
+jarvis/.audit-tests.log
+jarvis/donnees.exemple/memoire.db
+jarvis/donnees.exemple/offres-stock.json
+jarvis/donnees.exemple/recherche-ia-automatique.json
+jarvis/donnees.exemple/recherches.json
+jarvis/donnees.exemple/usage.json

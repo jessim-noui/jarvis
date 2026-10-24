@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Alertes et problèmes · Jarvis</title>
+<meta name="description" content="Ce que la sécurité a mis de côté et ce qui ne marche pas : quand, d'où, le texte exact et pourquoi.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8' fill='%23b5561f'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="lib/fonts/fonts.css">
+<link rel="stylesheet" href="app.css">
+<style>
+main.ecran{max-width:980px}
+.tete{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:6px}
+.tete h1{font-size:32px;margin-right:auto}
+.intro{color:var(--mut);margin-bottom:16px}
+.ligne-a{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.ligne-a.lu{opacity:.62}
+.haut-a{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline}
+.haut-a b{font-size:15.5px}
+.genre{font-size:12px;padding:2px 9px;border-radius:999px;background:var(--rose);color:var(--acc-h)}
+.genre.probleme{background:var(--creux);color:var(--bleu-a)}
+.brut{font-family:'JetBrains Mono',monospace;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--blanc);border:1px solid var(--line3);border-radius:10px;padding:10px 12px;max-height:180px;overflow:auto}
+.reponse{background:var(--vert-c);border-radius:12px;padding:10px 14px;font-size:14.5px}
+.fiche{border-left:5px solid #c9971f}.fiche.haute{border-left-color:#c0392b}.fiche.basse{border-left-color:#8aa}.fiche.resolu{opacity:.7;border-left-color:#2f8a49}
+.etat-i{font-size:12px;padding:2px 9px;border-radius:999px;background:var(--ambre-c);color:var(--ambre-t)}
+.histo{font-size:13px;color:var(--dim);margin:4px 0 0 18px}
+.titre-sec{font-family:Fraunces,serif;font-size:22px;margin:18px 0 8px}
+</style>
+</head>
+<body data-ecran="alertes">
+<main class="ecran">
+  <div class="hors" id="hors">Jarvis est éteint : double-clique sur <b>JARVIS.bat</b>.</div>
+  <div class="tete"><h1>Alertes et problèmes</h1>
+    <div class="filtres" id="filtres"></div></div>
+  <p class="intro">Ce que la sécurité a mis de côté, et ce qui ne marche pas. Le texte exact est affiché tel quel : il n’est jamais exécuté, et les clés sont masquées.</p>
+  <h2 class="titre-sec">Fiches d’incident</h2>
+  <p class="dim" id="modeRep"></p>
+  <div id="fiches"></div>
+  <h2 class="titre-sec">Alertes et erreurs</h2>
+  <div id="liste"></div>
+</main>
+<script src="demo.js"></script>
+<script src="app.js"></script>
+<script>
+let filtre = 'a_voir';
+const FILTRES = [['a_voir', 'À regarder'], ['alerte', 'Bloqué par la sécurité'], ['probleme', 'Ça ne marche pas'], ['historique', 'Réglé ou ignoré']];
+const ETATS = {regle: 'réglé', ignore: 'ignoré'};
+function ligne(l) {
+  const c = el('article', 'carte ligne-a' + (l.lu ? ' lu' : '')), h = el('div', 'haut-a');
+  h.append(el('span', 'genre ' + l.famille, l.famille === 'alerte' ? 'bloqué' : 'problème'), el('b', '', l.origine),
+           el('span', 'dim', l.quand.slice(0, 16).replace('T', ' à ')));
+  if (l.lu) h.append(el('span', 'genre', ETATS[l.etat] || 'vu'));
+  c.append(h, el('p', '', 'Pourquoi : ' + l.pourquoi));
+  if (l.texte) { c.append(el('span', 'dim', 'Le texte exact :')); c.append(el('div', 'brut' + (l.source === 'mails' ? ' prive' : ''), l.texte)); }
+  const ou = el('p', 'dim', 'Où aller voir : '); ou.append(lien(l.ou, l.lien, '')); if (l.fichier) ou.append(` · fichier ${l.fichier}`); c.append(ou);
+  const act = el('div', 'actions'), rep = el('div');
+  const montrer = r => { const box = el('div', 'reponse'); box.append(el('p', '', 'Cause : ' + (r.cause || '?')));
+    if (r.correction) box.append(el('p', '', 'Ce qu’il faut faire : ' + r.correction)); rep.replaceChildren(box); };
+  if (l.reponse_jarvis) montrer(l.reponse_jarvis);
+  const changer = etat => async () => { await api('/alertes/lu', {id: l.id, etat}).catch(e => toast(e.message)); charger(); };
+  if (!l.lu) {
+    act.append(bouton(l.reponse_jarvis ? 'Redemander à Jarvis' : 'Demander à Jarvis de régler ça', 'pri', async ev => {
+      ev.target.disabled = true; rep.replaceChildren(el('p', 'dim', 'Jarvis regarde…'));
+      try { const r = await api('/alertes/regler', {id: l.id});
+        if (r.rien_a_faire) { toast('Rien à corriger : c’est le fonctionnement normal. Réglé.'); return charger(); }
+        montrer(r);
+      } catch (e) { rep.replaceChildren(el('p', 'alerte-lien', e.message)); }
+      ev.target.disabled = false;
+    }));
+    act.append(bouton('C’est réglé', '', changer('regle')), bouton('C’est bon, c’était moi', '', changer('ignore')));
+  }
+  c.append(act, rep); return c;
+}
+async function charger() {
+  const f = $('filtres'); f.replaceChildren();
+  for (const [v, n] of FILTRES) { const b = el('button', 'puce', n); b.type = 'button'; b.setAttribute('aria-pressed', v === filtre); b.onclick = () => { filtre = v; chargerTout(); }; f.append(b); }
+  try {
+    const d = await api('/alertes'); $('hors').classList.remove('vu');
+    const l = d.lignes.filter(x => filtre === 'historique' ? x.lu : !x.lu && (filtre === 'a_voir' || x.famille === filtre));
+    $('liste').replaceChildren(...(l.length ? l.map(ligne) : [el('p', 'mut', filtre === 'a_voir' ? 'Rien à regarder. Tout va bien.' : 'Rien ici.')]));
+  } catch (e) { $('hors').classList.add('vu'); }
+}
+/* Mission 14 : les fiches d'incident (une par panne, regroupées), avec ce que Jarvis a tenté. Jamais de contenu de message. */
+const MODES = {off: 'Réparations automatiques coupées.', proposer: 'Réparations sûres : Jarvis te les propose dans Décisions (bouton « Appliquer »).',
+               auto: 'Réparations sûres : Jarvis les fait seul (au plus 5 par heure).'};
+function fiche(f) {
+  const c = el('article', 'carte ligne-a fiche ' + f.gravite + (f.etat === 'résolu' ? ' resolu' : '')), h = el('div', 'haut-a');
+  h.append(el('span', 'etat-i', f.etat), el('b', '', f.description), el('span', 'dim', 'depuis le ' + f.debut.slice(0, 16).replace('T', ' à ')));
+  c.append(h);
+  if (f.compteur > 1) c.append(el('p', 'dim', `Vu ${f.compteur} fois (dernière : ${f.derniere.slice(11, 16)}).`));
+  if (f.cause) c.append(el('p', '', `Cause probable : ${f.cause}` + (f.confiance ? ` (confiance ${f.confiance})` : '')));
+  for (const a of f.actions.slice(-3)) c.append(el('p', 'dim', `Tenté : ${a.quoi} → ${a.resultat}${a.preuve ? ' (' + a.preuve + ')' : ''}`));
+  if (f.traces.length) c.append(el('p', 'dim', 'Traces : ' + f.traces.slice(-5).join(', ')));
+  const d = el('details'), s = el('summary', 'dim', 'Historique'); d.append(s);
+  const ul = el('ul', 'histo'); for (const x of f.historique) ul.append(el('li', '', `${x.t.slice(5, 16).replace('T', ' ')} · ${x.etat} · ${x.texte}`)); d.append(ul);
+  c.append(d); return c;
+}
+async function chargerFiches() {
+  try { const d = await api('/incidents'); $('modeRep').textContent = MODES[d.mode] || '';
+    const l = d.incidents.filter(f => filtre === 'historique' ? f.etat === 'résolu' : f.etat !== 'résolu');
+    $('fiches').replaceChildren(...(l.length ? l.map(fiche) : [el('p', 'mut', filtre === 'historique' ? 'Aucune fiche résolue.' : 'Aucun incident en cours.')]));
+  } catch (_) {}
+}
+const chargerTout = () => { charger(); chargerFiches(); };
+chargerTout();
+</script>
+</body>
+</html>

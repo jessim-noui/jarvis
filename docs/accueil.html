@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Accueil · Jarvis</title>
+<meta name="description" content="Parle à Jarvis, et les 3 choses à faire aujourd’hui.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8' fill='%23b5561f'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="lib/fonts/fonts.css">
+<link rel="stylesheet" href="app.css">
+<style>
+/* Mission 15 (maquette R_Accueil, images 01 et 01b) : calme en haut, 3 choses à cliquer en bas, les 4 espaces tout en bas.
+   Le fil de Jarvis est dans la pastille de la barre du haut. */
+body[data-ecran=accueil]{background:var(--fond);font-family:'Work Sans','Inter',sans-serif;color:var(--encre)}
+main.calme{height:100vh;padding:var(--nav) 28px 0;display:flex;flex-direction:column;overflow:hidden;background:radial-gradient(ellipse at 50% 30%,var(--halo) 0%,var(--fond) 65%)}
+.centre{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;padding-bottom:6px}
+.parler{width:820px;max-width:100%;display:flex;flex-direction:column;gap:16px}
+.surtitre{font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--gris)}
+.parler h1{margin:0;font-family:'Fraunces',serif;font-weight:400;font-size:48px;line-height:1.05}
+.parler h1 span{color:var(--gris)}
+/* Mise en page : une seule boîte — la conversation au-dessus, la zone pour écrire en bas, collées ; en conversation, la boîte prend l'écran */
+.boite{display:flex;flex-direction:column;background:var(--carte2);border-radius:22px;box-shadow:0 10px 30px rgba(27,35,24,.08),0 0 0 1px var(--bord);overflow:hidden}
+.boite:focus-within{box-shadow:0 10px 30px rgba(27,35,24,.08),0 0 0 2px var(--orange)}
+#f{display:flex;align-items:flex-end;gap:10px;padding:9px 9px 9px 20px}
+.boite .fil:not(:empty)+#f{border-top:1px solid var(--bord)}
+#q{flex:1;min-width:0;border:0;background:transparent;font:inherit;font-size:16px;line-height:1.5;color:var(--encre);outline:none;resize:none;padding:10px 0;max-height:160px;overflow-y:auto}
+#q::placeholder{color:var(--gris)}
+#envoyer{flex:none;width:44px;height:44px;border-radius:50%;background:var(--encre);color:#fff;font-size:18px}
+#envoyer:disabled{opacity:.6}
+.outil-q{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--encre2);transition:background .15s,color .15s}.outil-q:hover{background:var(--creux);color:var(--encre)}
+.outil-q svg{width:21px;height:21px}
+.outil-q.rec{background:#b5561f;color:#fff;animation:rec 1.2s ease-in-out infinite}@keyframes rec{50%{opacity:.6}}
+@media (prefers-reduced-motion:reduce){.outil-q.rec{animation:none}}
+.chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chip{font-size:13.5px;border:1px solid var(--bord);border-radius:999px;padding:7px 14px;color:var(--encre2);transition:background .2s}.chip:hover{background:var(--fond2)}
+.bulle{font-size:14.5px;margin-left:6px;animation:bulle .45s cubic-bezier(.16,1,.3,1) both}.bulle a{color:var(--brique)}
+@keyframes bulle{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.boite .fil{max-height:0;padding:0 22px;transition:max-height .3s}.boite .fil:empty{display:none}
+.parler .msg{font-size:16px;line-height:1.6;padding:12px 16px}
+.entete-conv{display:none}
+/* mode conversation : dès le premier message */
+main.conv .centre{justify-content:flex-start;gap:12px;padding:14px 0 10px}
+main.conv .parler{width:1000px;flex:1;min-height:0;gap:10px}
+main.conv .surtitre,main.conv .parler h1,main.conv .chips{display:none}
+main.conv .entete-conv{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.entete-conv b{font-family:'Fraunces',serif;font-size:22px;font-weight:600}
+.entete-conv button{font-size:13.5px;border:1px solid var(--bord);border-radius:999px;padding:6px 13px;color:var(--encre2)}.entete-conv button:hover{background:var(--fond2)}
+main.conv .boite{flex:1;min-height:0}
+main.conv .boite .fil{flex:1;min-height:0;max-height:none;overflow:auto;padding:22px 24px;gap:16px}
+main.conv .parler .msg{font-size:17px;max-width:84%}
+main.conv .trois{width:1000px}
+main.conv .trois .h span:last-child{display:none}
+main.conv .cartes3{gap:10px}
+main.conv .carte3{min-height:0;padding:10px 14px;flex-direction:row;align-items:center;gap:12px}
+main.conv .carte3 .n b{font-size:24px}main.conv .carte3 .n span,main.conv .carte3 .s{display:none}
+main.conv .carte3 .t{font-size:15.5px;flex:1}main.conv .carte3 .l{font-size:13px}
+main.conv .espaces{display:none}
+.parler .msg.moi{background:var(--encre);color:var(--fond)}.parler .msg.lui{background:var(--carte);box-shadow:0 0 0 1px var(--bord)}
+.petite-ligne{font-size:13px;color:var(--gris);display:flex;gap:10px;align-items:center;flex-wrap:wrap}.petite-ligne:empty{display:none}
+.trois{width:1060px;max-width:100%;display:flex;flex-direction:column;gap:10px}
+.trois .h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:13px;color:var(--gris)}
+.trois .h span:first-child{font-size:12.5px;letter-spacing:.14em;text-transform:uppercase}
+.cartes3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.carte3{text-align:left;background:var(--carte);border-radius:20px;padding:18px 20px 16px;display:flex;flex-direction:column;gap:8px;min-height:190px;box-shadow:0 1px 0 var(--bord);
+  transition:transform .25s cubic-bezier(.16,1,.3,1),box-shadow .25s,opacity .4s}
+.carte3:hover{transform:translateY(-5px);box-shadow:0 16px 36px rgba(27,35,24,.13)}
+.carte3 .n{display:flex;align-items:baseline;gap:12px;color:var(--c)}
+.carte3 .n b{font-family:'Fraunces',serif;font-size:54px;line-height:.8;font-weight:800}
+.carte3 .n span{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
+.carte3 .t{font-family:'Fraunces',serif;font-size:22px;line-height:1.15;font-weight:600}
+.carte3 .s{font-size:13.5px;line-height:1.45;color:var(--encre2);flex:1}
+.carte3 .l{font-size:14px;font-weight:600;color:var(--c)}.carte3 .fl{display:inline-block;transition:transform .2s}.carte3:hover .fl{transform:translateX(4px)}
+.carte3.fait{opacity:.55}
+.rien{font-family:'Fraunces',serif;font-size:22px;color:var(--encre2);padding:20px 0}
+.espaces{display:flex;justify-content:center;gap:30px;padding:0 0 22px;font-size:14px}
+.espaces a{display:flex;gap:8px;align-items:center;color:var(--encre2);text-decoration:none;transition:color .2s}.espaces a:hover{color:var(--encre);text-decoration:underline}
+.espaces a::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--c)}
+.tg{background:#e8eef7;border:1px solid #c9d6ea;border-radius:14px;padding:8px 12px}
+@media (prefers-reduced-motion:reduce){.bulle{animation:none}.carte3,.fl{transition:none}}
+@media (max-width:900px){main.calme{height:auto;overflow:visible;padding:calc(var(--nav) + 20px) 16px 0}.parler h1{font-size:34px}.cartes3{grid-template-columns:1fr}.espaces{flex-wrap:wrap;gap:12px 20px;padding-top:24px}}
+</style>
+</head>
+<body data-ecran="accueil">
+<main class="calme">
+  <div class="hors" id="hors">Jarvis est éteint : double-clique sur <b>JARVIS.bat</b>, la page se met à jour toute seule.</div>
+  <div class="centre">
+    <section class="parler" aria-labelledby="salut">
+      <span class="surtitre" id="date"></span>
+      <h1 id="salut">Bonjour ! <span>On avance sur quoi&#160;?</span></h1>
+      <div class="entete-conv"><b>Avec Jarvis</b><button type="button" id="nouvelle">Nouvelle conversation</button></div>
+      <div class="boite">
+        <div class="fil" id="fil" aria-live="polite"></div>
+        <form id="f">
+          <label for="q" class="cache">Écris ou dicte à Jarvis (il choisit la bonne IA)</label>
+          <textarea id="q" rows="1" maxlength="3000" autocomplete="off" placeholder="Écris ou dicte à Jarvis… ex. : trouve-moi 3 offres support dans ma zone"></textarea>
+          <button id="micro" type="button" class="outil-q" aria-label="Dicter (Alt+M)" title="Dicter (Alt+M) : clic pour parler, re-clic pour finir" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5M8.5 21.5h7"/></svg></button>
+          <button id="envoyer" aria-label="Envoyer">→</button>
+        </form>
+      </div>
+      <div class="chips">
+        <button class="chip" type="button" data-r="journee">Prépare ma journée</button>
+        <button class="chip" type="button" data-r="ia">Où sont mes IA&#160;?</button>
+        <button class="chip" type="button" data-r="tester">Tester mes IA</button>
+        <span class="bulle" id="rep" aria-live="polite" hidden></span>
+      </div>
+      <p class="petite-ligne" id="petite"></p>
+    </section>
+    <section class="trois" aria-label="Pour aujourd’hui">
+      <div class="h"><span id="titreTrois">Pour aujourd’hui</span><span>Le reste peut attendre. Je m’occupe du reste.</span></div>
+      <div class="cartes3" id="cartes3"></div>
+    </section>
+  </div>
+  <nav class="espaces" aria-label="Les espaces">
+    <a href="emploi.html" style="--c:var(--vert-a)">Ma recherche</a><a href="pilote.html" style="--c:var(--nuit-a)">L’atelier Jarvis</a>
+    <a href="rapports.html" style="--c:var(--orange)">La bibliothèque</a><a href="jeu.html" style="--c:#c9971f">Le jeu</a>
+  </nav>
+</main>
+<script src="demo.js"></script>
+<script src="app.js"></script>
+<script>
+'use strict';
+const maintenant = new Date(), h = maintenant.getHours();
+$('date').textContent = maintenant.toLocaleDateString('fr-FR', {weekday: 'long', day: 'numeric', month: 'long'}) + ' · ' + maintenant.toTimeString().slice(0, 5);
+$('salut').firstChild.textContent = (h >= 23 || h < 5 ? 'Il est tard' : h >= 18 ? 'Bonsoir' : 'Bonjour') + ' ! ';
+
+/* ---------- Écrire à Jarvis (le chat, en petit sous la zone) ---------- */
+function envoyer(q) {
+  q = (q || '').trim(); if (!q) return;
+  document.querySelector('main').classList.add('conv');  // la conversation prend l'écran
+  $('q').value = ''; hauteur(); $('envoyer').disabled = true; $('rep').hidden = true;
+  poser($('fil'), q, {}, () => { $('envoyer').disabled = false; $('q').focus(); });
+}
+$('f').addEventListener('submit', e => { e.preventDefault(); envoyer($('q').value); });
+/* la zone grandit avec le texte (dictée longue) ; Entrée envoie, Maj+Entrée va à la ligne */
+const hauteur = () => { const q = $('q'); q.style.height = 'auto'; q.style.height = Math.min(q.scrollHeight, 160) + 'px'; };
+$('q').addEventListener('input', hauteur);
+$('q').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); envoyer($('q').value); } });
+$('nouvelle').onclick = () => { $('fil').replaceChildren(); document.querySelector('main').classList.remove('conv'); $('q').focus(); };
+/* Dicter (Alt+M) : clic pour parler, re-clic pour finir (22/10 : plus d'arrêt tout seul sur un silence, plus de voix haute) */
+$('micro').onclick = () => dicter($('q'), $('micro'), envoyer);
+document.addEventListener('keydown', e => { if (e.altKey && (e.key === 'm' || e.key === 'M')) { e.preventDefault(); $('micro').click(); } });
+api('/dictee/prechauffer', {}).catch(() => {});  // Whisper chargé en fond tant que la page est ouverte (et que tu es là)
+const q0 = new URLSearchParams(location.search).get('q');
+if (q0) { history.replaceState(null, '', 'accueil.html'); envoyer(q0.slice(0, 3000)); }
+
+/* Les 3 boutons : Jarvis répond en une ligne, juste à côté, avec un lien vers la bonne page */
+function repondre(texte, txtLien, url) {
+  const r = $('rep'); r.hidden = false; r.replaceChildren(el('b', '', 'Jarvis · '), texte);
+  if (url) r.append(' ', lien(txtLien + ' →', url, ''));
+}
+const REPONSES = {
+  journee: () => { const n = CARTES.filter(c => !c.fait).length;
+    repondre(n ? `C’est en dessous : ${n} chose${n > 1 ? 's' : ''}, dans l’ordre.` : 'Rien d’urgent aujourd’hui. Je m’occupe du reste.'); },
+  ia: () => repondre('Dans L’atelier Jarvis, onglet Mes IA.', 'Mes IA', 'mes-ia.html'),
+  tester: async () => {
+    repondre('Je teste tes IA…');
+    try { const avant = ((await api('/sante/test')).resultat || {}).t; await api('/sante/tester', {});
+      for (let i = 0; i < 60; i++) { await new Promise(r => setTimeout(r, 2000)); const t = await api('/sante/test');
+        if (!t.en_cours && t.resultat && t.resultat.t !== avant) return repondre(t.resultat.phrase, 'Santé et alertes', 'sante.html'); }
+      repondre('Le test est long : le résultat sera dans Santé et alertes.', 'Santé et alertes', 'sante.html');
+    } catch (x) { repondre(x.message); }
+  },
+};
+document.querySelectorAll('[data-r]').forEach(b => b.onclick = () => REPONSES[b.dataset.r]());
+
+/* ---------- Pour aujourd'hui · 3 choses : Décider · Regarder · Lire (calculées ici, dans cet ordre, sur les vraies données) ---------- */
+const JOUR = 'accueil_fait_' + maintenant.toISOString().slice(0, 10);
+const faits = () => { try { return JSON.parse(memo.lire(JOUR) || '{}'); } catch (_) { return {}; } };
+let CARTES = [];
+async function troisChoses() {
+  const [d, j, r] = await Promise.all([api('/decisions').catch(() => null), api('/jeu').catch(() => null), api('/rapport').catch(() => null)]);
+  $('hors').classList.toggle('vu', !d && !j && !r);
+  const f = faits(), c = [];
+  const dec = (d && d.decisions) || [];
+  if (dec.length || f.decider) { const n = dec.length, q = dec[0] && (dec[0].questions || [])[0];
+    c.push({id: 'decider', verbe: 'Décider', c: 'var(--orange)', url: 'decisions.html', label: 'Commencer',
+      titre: n ? `${n} question${n > 1 ? 's' : ''}` : 'Décisions', sous: n ? `Environ ${Math.max(1, Math.ceil(n * 0.7))} minute${n > 1 ? 's' : ''}.${q ? ' La première : ' + q : ''}` : 'Tout est décidé.'}); }
+  const nouv = ((j && j.offres.liste) || []).filter(o => o.etat === 'pour_toi' && o.nouvelle && !o.postule && o.lien_etat !== 'casse');
+  if (nouv.length || f.regarder) { const p = [...nouv].sort((a, b) => (+a.trajet_min || 999) - (+b.trajet_min || 999))[0];
+    c.push({id: 'regarder', verbe: 'Regarder', c: 'var(--vert-a)', url: p ? 'emploi.html#offre=' + encodeURIComponent(p.id) : 'emploi.html#offres', label: 'Voir les offres',
+      titre: nouv.length ? `${nouv.length} offre${nouv.length > 1 ? 's' : ''} pour toi` : 'Les offres',
+      sous: p ? (p.trajet_min ? `La plus proche : ${p.titre}, ${String(p.trajet).replace(/\s*\(estimé\)/, '').replace(/^≈\s*/, '')} depuis ton origine locale.` : `La première : ${p.titre}.`) : 'Rien de nouveau.'}); }
+  const sections = r ? [...r.texte.matchAll(/^## (Mission (\d+)[^\n]*)\n([\s\S]*?)(?=^## |(?![\s\S]))/gm)] : [];
+  const der = sections.sort((a, b) => b[2] - a[2])[0];
+  if (der && (memo.lire('rapport_lu') !== der[1] || f.lire)) {
+    const ok = (der[3].match(/✅/g) || []).length, av = (der[3].match(/⚠️/g) || []).length;
+    c.push({id: 'lire', verbe: 'Lire', c: 'var(--bleu-a)', url: 'rapports.html', label: 'Lire le rapport', lu: der[1],
+      titre: 'Le rapport de la Mission ' + der[2], sous: `${ok} étape${ok > 1 ? 's' : ''} faite${ok > 1 ? 's' : ''}` + (av ? `, ${av} chose${av > 1 ? 's' : ''} à vérifier avec toi.` : '.')}); }
+  CARTES = c.map(x => ({...x, fait: !!f[x.id]}));
+  dessiner();
+}
+function dessiner() {
+  const z = $('cartes3'), n = CARTES.filter(c => c.fait).length;
+  $('titreTrois').textContent = !CARTES.length ? 'Pour aujourd’hui' : n === CARTES.length ? 'Tout est fait pour aujourd’hui'
+    : n ? `Pour aujourd’hui · ${n} sur ${CARTES.length} fait` : `Pour aujourd’hui · ${CARTES.length} chose${CARTES.length > 1 ? 's' : ''}`;
+  if (!CARTES.length) { z.replaceChildren(el('p', 'rien', 'Rien d’urgent aujourd’hui.')); return; }
+  z.replaceChildren(...CARTES.map((c, i) => {
+    const b = el('button', 'carte3' + (c.fait ? ' fait' : '')); b.type = 'button'; b.style.setProperty('--c', c.c);
+    const n = el('span', 'n'); n.append(el('b', '', c.fait ? '✓' : String(i + 1)), el('span', '', c.verbe));
+    const l = el('span', 'l', c.fait ? 'Fait · annuler ' : c.label + ' '); if (!c.fait) l.append(el('span', 'fl', '→'));
+    b.append(n, el('span', 't', c.titre), el('span', 's', c.sous), l);
+    b.onclick = () => { const f = faits();  // un clic ouvre la page et la marque faite ; sur une carte faite : annuler
+      if (c.fait) { delete f[c.id]; memo.ecrire(JOUR, JSON.stringify(f)); c.fait = false; dessiner(); return; }
+      f[c.id] = true; memo.ecrire(JOUR, JSON.stringify(f)); if (c.lu) memo.ecrire('rapport_lu', c.lu); location.href = c.url; };
+    return b; }));
+}
+troisChoses();
+
+/* Pause jeu (mission 13) et Telegram pas encore lié : une petite ligne seulement quand ça sert */
+async function petiteLigne() {
+  const z = $('petite'); z.replaceChildren();
+  try { const e = await api('/etat-pc');
+    if (e.mode_jeu) z.append('En pause pendant ton jeu.', bouton('Fin de la pause jeu', 'petit', async () => { try { toast((await api('/mode-jeu/off', {})).message); } catch (x) { toast(x.message); } petiteLigne(); })); } catch (_) {}
+  try { const tg = (await api('/jeu')).telegram || {};
+    if (!tg.lie && tg.code) { const t = el('span', 'tg'); t.append(`Relie Telegram : envoie à @${tg.bot || 'ton bot'} `, el('b', '', '/lier ' + tg.code)); z.append(t); } } catch (_) {}
+}
+petiteLigne();
+</script>
+</body>
+</html>

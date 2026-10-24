@@ -1,0 +1,42 @@
+{
+  "telegram": {
+    "profil": "jarvis-rapide",
+    "consigne_longueur": "Réponse pour Telegram : 3 phrases courtes maximum (60 mots), pas de liste sauf si l’utilisateur en demande une, mots simples, pas d'émoji."
+  },
+  "decouvertes2": {
+    "actif": true,
+    "budget_requetes": 25
+  },
+  "directeur": {
+    "budget_appels": 12,
+    "budget_tokens": 60000,
+    "budget_secondes": 900
+  },
+  "sauvegarde": {
+    "garder_jours": 7
+  },
+  "modifier": {
+    "generateur": "claude"
+  },
+  "delais": {
+    "chat": 75,
+    "agent": 60,
+    "code": 45,
+    "local": 200,
+    "total": 240,
+    "navigateur_prevu": 75,
+    "navigateur_max": 255,
+    "_note": "Mission 14, étape 0 : 95e centile mesuré + marge (chef 32 s, local 166 s). total = délai serveur d'une question.",
+    "tache_bloquee_min": 45
+  },
+  "surveillance": {
+    "actif": true,
+    "_note": "Mission 14 : false = plus de sonde ni de fiches (comme avant)."
+  },
+  "reparations": {
+    "mode": "proposer",
+    "debut": "2026-10-21",
+    "_note": "off / proposer / auto. Choix de l’utilisateur : proposer 7 jours, puis une carte demande."
+  },
+  "jeux": []
+}

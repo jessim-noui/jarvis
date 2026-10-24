@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Regarder une vidéo · Jarvis</title>
+<meta name="description" content="Regarder une vidéo avec l'IA.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8' fill='%23b5561f'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="lib/fonts/fonts.css">
+<link rel="stylesheet" href="app.css">
+<style>
+main.ecran{max-width:1100px}
+.tete-sk{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px}
+.tete-sk p{color:var(--mut);max-width:62ch;margin-top:6px}
+.grille-sk{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-top:14px}
+.sk{padding:16px 18px;border-radius:18px;background:var(--blanc);border:1px solid var(--line2);box-shadow:0 8px 22px rgba(80,55,25,.06)}
+.sk b{font-family:'Fraunces',serif;font-size:18px}
+.sk p{color:var(--mut);font-size:14px;margin-top:4px;line-height:1.45}
+.sk.attente{background:#fdf3e7;border-style:dashed}
+h2.sec{font-size:22px;margin-top:30px}
+.form-sk{display:flex;flex-direction:column;gap:10px}
+.form-sk label{font-weight:600;font-size:14px}
+.form-sk input,.form-sk textarea{width:100%;font:inherit;padding:10px 12px;border-radius:12px;border:1px solid var(--line2);background:var(--blanc);color:var(--txt)}
+.form-sk textarea{min-height:160px;resize:vertical}
+.form-sk small{color:var(--dim)}
+.etape{font-family:'Fraunces',serif;font-size:24px;margin:20px 0}
+.erreur{color:var(--rouge);margin:10px 0}
+.analyse{white-space:pre-wrap}
+#etape{font-family:'Fraunces',serif;font-size:24px;margin-top:22px}
+#erreur{color:#a3401c;margin-top:6px}
+.analyse{white-space:pre-wrap;line-height:1.55;margin-top:10px}
+#form-video{max-width:720px;margin-top:18px}
+</style>
+</head>
+<body data-ecran="plus">
+<main class="ecran">
+  <div class="hors" id="hors">Jarvis est éteint : double-clique sur <b>JARVIS.bat</b>.</div>
+  <div class="tete-sk">
+    <div><h1>Regarder une vidéo</h1><p>Colle un lien (YouTube, TikTok, Instagram…) ou le chemin d'une vidéo de ton PC. Un lien est téléchargé puis effacé après l'analyse ; un fichier de ton PC est seulement lu, jamais modifié ni déplacé.</p></div>
+  </div>
+  <form class="form-sk" id="form-video">
+    <label for="source">Source</label>
+    <input type="text" id="source" placeholder="https://… ou le chemin d’une vidéo sur ton PC">
+    <button class="btn pri" type="submit" id="regarder">Regarder</button>
+  </form>
+  <div id="etape"></div>
+  <div id="erreur"></div>
+  <div id="analyse"></div>
+  <h2 class="sec">Dernières vidéos</h2>
+  <div class="grille-sk" id="dernieres"></div>
+</main>
+<script src="app.js"></script>
+<script>
+'use strict';
+let idVideo = null, minuteur = null;
+const jm = t => { const d = new Date(t); return isNaN(d) ? '' : d.toLocaleString('fr-FR', {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'}); };
+function carteVideo(r) {
+  const c = el('article', 'sk'), src = (r.source || '').length > 70 ? r.source.slice(0, 70) + '…' : (r.source || '');
+  const det = el('details'); det.append(el('summary', '', 'Lire l’analyse'), el('p', 'analyse', brut(r.analyse)));
+  c.append(el('b', '', src), el('p', '', `Durée : ${r.duree} · ${jm(r.t)}`), det);
+  return c;
+}
+async function chargerDernieres() {
+  try { const d = await api('/video'); $('hors').classList.remove('vu'); $('dernieres').replaceChildren(...(d.resultats || []).map(carteVideo)); return d; }
+  catch (_) { $('hors').classList.add('vu'); return null; }
+}
+async function suivre() {
+  let d;
+  try { d = await api('/video?id=' + encodeURIComponent(idVideo)); } catch (err) { $('erreur').textContent = err.message; return; }
+  $('etape').textContent = d.etape || '';
+  $('erreur').textContent = d.erreur ? 'Erreur : ' + d.erreur : '';
+  if (d.en_cours) { minuteur = setTimeout(suivre, 2000); return; }
+  if (d.resultat) {
+    const det = el('details'); det.append(el('summary', '', 'Transcription'), el('p', 'analyse', d.resultat.transcription || '(pas de parole)'));
+    $('analyse').replaceChildren(el('p', 'analyse', brut(d.resultat.analyse)), det);
+    chargerDernieres();
+  }
+  $('regarder').disabled = false;
+}
+$('form-video').onsubmit = async e => {
+  e.preventDefault();
+  const source = $('source').value.trim();
+  if (!source) return;
+  $('regarder').disabled = true; $('erreur').textContent = ''; $('analyse').replaceChildren(); clearTimeout(minuteur);
+  try { idVideo = (await api('/video/regarder', {source})).id; $('etape').textContent = 'Préparation…'; suivre(); }
+  catch (err) { $('erreur').textContent = err.message; $('regarder').disabled = false; }
+};
+chargerDernieres().then(d => { if (d && d.en_cours && d.en_cours.length) { idVideo = d.en_cours[0].id; $('regarder').disabled = true; suivre(); } });
+</script>
+</body>
+</html>

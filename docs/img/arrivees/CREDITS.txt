@@ -1,0 +1,4 @@
+Ressources des arrivees
+- Flocons, etincelle, nuage, lave, eau, lens flare : exemples three.js (github.com/mrdoob/three.js), licence MIT.
+- Texture de la Terre : NASA Blue Marble, domaine public (via les exemples three.js).
+- Son : vent et ambiances synthetises dans le navigateur (aucun fichier audio).

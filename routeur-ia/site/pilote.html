@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pilote · Jarvis</title>
+<meta name="description" content="Le graphe de Jarvis : agents, IA, skills et notes de la mémoire, reliés par ce qu'ils font vraiment.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8' fill='%23b5561f'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="lib/fonts/fonts.css">
+<link rel="stylesheet" href="app.css">
+<style>
+/* Mission 15 : le graphe façon Obsidian (maquette R_Pilote_Graphe, images 08 et 09). Remplace l'arbre céleste (archives/).
+   Toujours sombre, comme la maquette ; la barre prend les mêmes couleurs. */
+body.pilote{--fond:#0f1328;--fond2:#0f1328;--carte:#1b2250;--creux:#1b2250;--bord:#262b52;--bord2:#262b52;--encre:#ece8ff;--gris:#9a96c8;
+  --orange:#b5561f;--orange-t:#f2b866;--bord-o:#b5561f;background:#0f1328;color:#ece8ff;height:100vh;overflow:hidden;font-family:'Work Sans',sans-serif}
+.pilote .decisions-nav.a-faire{background:#b5561f;color:#fff;border-color:#b5561f}.pilote .decisions-nav.a-faire::before{background:#fff}
+.pilote main{position:fixed;inset:var(--nav) 0 0 0;display:grid;grid-template-columns:minmax(0,1fr) 320px;
+  background:radial-gradient(ellipse at 40% 50%,#1b2250 0%,#0f1328 60%,#090b1a 100%)}
+.scene{position:relative;overflow:hidden;touch-action:none}
+.outils{position:absolute;left:20px;top:14px;right:20px;display:flex;gap:8px;align-items:center;z-index:3;flex-wrap:wrap}
+.outils input{font:inherit;font-size:13.5px;width:260px;padding:8px 12px;border-radius:10px;border:1px solid #343a6e;background:rgba(15,19,40,.8);color:#ece8ff}
+.outils input::placeholder{color:#8e8abd}
+.filtre{display:flex;align-items:center;gap:6px;font-size:12.5px;padding:6px 11px;border-radius:999px;border:1px solid var(--c);background:rgba(255,255,255,.06);color:#ece8ff}
+.filtre[aria-pressed=false]{border-color:#343a6e;background:transparent;color:#8e8abd}
+.filtre i{width:9px;height:9px;border-radius:50%;background:var(--p)}
+.zoomb{position:absolute;right:18px;bottom:12px;display:flex;gap:6px;z-index:3}
+.zoomb button{width:32px;height:32px;border-radius:8px;border:1px solid #343a6e;color:#ece8ff}
+.zoomb button:hover{background:rgba(255,255,255,.08)}
+.aide{position:absolute;left:20px;bottom:10px;font-size:12px;color:#9a96c8;z-index:3}
+.monde{position:absolute;left:0;top:0;width:940px;height:640px;transform-origin:0 0}
+.monde.anime{transition:transform .5s cubic-bezier(.22,1,.36,1)}
+.monde svg{position:absolute;inset:0;overflow:visible}
+.lien{transition:opacity .3s,stroke .3s}
+@keyframes coule{to{stroke-dashoffset:-24}}
+.coule{stroke-dasharray:6 6;animation:coule .8s linear infinite}
+.noeud{position:absolute;display:flex;flex-direction:column;align-items:center;gap:4px;padding:0;cursor:grab;transition:opacity .3s}
+.noeud:active{cursor:grabbing}
+.noeud .rond{display:block;border-radius:50%;animation:flotte 5s ease-in-out infinite;transition:transform .3s cubic-bezier(.16,1,.3,1),box-shadow .3s}
+.noeud:hover .rond{transform:scale(1.35)}
+@keyframes flotte{0%,100%{margin-top:0}50%{margin-top:-4px}}
+.noeud .lab{white-space:nowrap;text-shadow:0 1px 6px #090b1a;color:#d9d3ff;font:500 11.5px 'JetBrains Mono',monospace}
+.noeud.t-jarvis .lab{font:800 17px 'Fraunces',serif}.noeud.t-agent .lab{font:500 13px 'Fraunces',serif}
+.noeud.fort .lab{color:#fff}
+.fiche{border-left:1px solid #262b52;background:rgba(9,11,26,.55);padding:18px 20px;display:flex;flex-direction:column;gap:12px;min-height:0;overflow:auto}
+.sur{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#9a96c8}
+.moment{border:1px solid #343a6e;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.moment b{font:600 20px 'Fraunces',serif}.moment span{font-size:13.5px;color:#c7c1ee}.moment small{font:12px 'JetBrains Mono',monospace;color:#9a96c8}
+.chiffres{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.chiffres div{border-radius:12px;background:rgba(255,255,255,.05);padding:10px 12px}.chiffres b{font-size:22px}.chiffres span{display:block;font-size:12px;color:#9a96c8}
+.note-bas{margin-top:auto;font-size:12.5px;color:#9a96c8;line-height:1.5}
+.f-nom{font:600 28px/1.1 'Fraunces',serif}.f-info{font-size:14px;color:#c7c1ee;line-height:1.5}
+.f-l{font-size:13px;color:#c7c1ee}.f-l b{color:#9a96c8;font-weight:500}
+.voisins{display:flex;flex-wrap:wrap;gap:6px}
+.voisins button{font-size:12.5px;border-radius:999px;padding:5px 11px;border:1px solid var(--c);color:#ece8ff}
+.voisins button:hover{background:rgba(255,255,255,.08)}
+.retour{align-self:flex-start;margin-top:8px;font-size:13px;border:1px solid #343a6e;color:#ece8ff;border-radius:999px;padding:6px 14px}
+.ouvrir{font-size:13px;color:#f2b866}
+@keyframes entre{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.entre{animation:entre .45s cubic-bezier(.16,1,.3,1) both}
+.hors{position:absolute;left:20px;top:60px;z-index:4}
+@media (prefers-reduced-motion:reduce){.coule,.noeud .rond,.entre{animation:none}.monde.anime{transition:none}}
+@media (max-width:900px){.pilote main{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) 260px}.fiche{border-left:0;border-top:1px solid #262b52}}
+</style>
+</head>
+<body data-ecran="pilote" class="pilote">
+<main>
+  <section class="scene" id="scene" aria-label="Le graphe">
+    <div class="hors" id="hors">Jarvis est éteint : double-clique sur <b>JARVIS.bat</b>.</div>
+    <div class="outils"><input id="q" type="search" placeholder="Chercher un agent, une IA, une note…" aria-label="Chercher dans le graphe" autocomplete="off">
+      <span id="filtres" style="display:contents"></span></div>
+    <div class="monde" id="monde"><svg id="svg" width="940" height="640" aria-hidden="true"></svg></div>
+    <div class="zoomb"><button type="button" id="moins" aria-label="Dézoomer">−</button><button type="button" id="plus" aria-label="Zoomer">+</button></div>
+    <p class="aide">Survole : ses liens s’allument · Clique : sa fiche à droite · Glisse un point pour le déplacer · Pointillés qui coulent = un vrai travail en cours</p>
+  </section>
+  <aside class="fiche" id="fiche" aria-label="Fiche" aria-live="polite"></aside>
+</main>
+<script src="app.js"></script>
+<script>
+'use strict';
+const T = {jarvis: ['#f2b866', 'Le chef'], agent: ['#8fb3ff', 'Agents'], cloud: ['#b89cff', 'IA en ligne'], local: ['#5fd39a', 'IA sur ton PC'],
+           skill: ['#ff9f6b', 'Skills'], note: ['#b9b6d3', 'Mémoire']};
+const GENRE = {jarvis: 'Le chef', agent: 'Agent', cloud: 'IA en ligne (gratuite)', local: 'IA sur ton PC', skill: 'Skill', note: 'Note de la mémoire'};
+const W = 940, H = 640, SVG = 'http://www.w3.org/2000/svg';
+let G = null, par = {}, voisins = {}, sel = null, hov = null, z = 1, off = {}, q = '', D = null;
+
+/* Disposition par forces (Fruchterman-Reingold), en JS simple : départ fixe par type, calculée une fois, puis figée. */
+function disposer(noeuds, liens) {
+  const anneau = {jarvis: 0, agent: 120, cloud: 260, local: 260, skill: 220, note: 300}, n = noeuds.length, k = Math.sqrt(W * H / n) * .52;
+  noeuds.forEach((v, i) => { const a = i * 2.39996, r = anneau[v.type]; v.x = W / 2 + Math.cos(a) * r; v.y = H / 2 + Math.sin(a) * r * .7; });
+  for (let it = 0, t = W / 8; it < 400; it++, t *= .985) {
+    for (const v of noeuds) { v.dx = (W / 2 - v.x) * .03; v.dy = (H / 2 - v.y) * .04; }
+    for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+      const A = noeuds[i], B = noeuds[j], dx = A.x - B.x, dy = A.y - B.y, d = Math.hypot(dx, dy) || .1, f = k * k / d / d * (Math.abs(dy) < 16 && Math.abs(dx) < 120 ? 2.5 : 1);  // étiquettes côte à côte : on écarte plus
+      A.dx += dx * f; A.dy += dy * f; B.dx -= dx * f; B.dy -= dy * f; }
+    for (const l of liens) { const A = par[l.a], B = par[l.b], dx = A.x - B.x, dy = A.y - B.y, d = Math.hypot(dx, dy) || .1, f = d / k * (A.type === 'note' && B.type === 'note' ? .2 : 1);
+      A.dx -= dx * f; A.dy -= dy * f; B.dx += dx * f; B.dy += dy * f; }
+    for (const v of noeuds) {
+      if (v.type === 'jarvis') { v.x = W / 2; v.y = H / 2; continue; }
+      const d = Math.hypot(v.dx, v.dy) || 1, m = Math.min(d, t);
+      v.x = Math.max(80, Math.min(W - 90, v.x + v.dx / d * m)); v.y = Math.max(45, Math.min(H - 75, v.y + v.dy / d * m)); }
+  }
+}
+function rayon(v) { return v.type === 'jarvis' ? 30 : Math.min(22, 8 + (v.liens || 1) * 1.6); }
+
+function dessiner() {
+  const svg = $('svg'), monde = $('monde');
+  svg.replaceChildren(); monde.querySelectorAll('.noeud').forEach(x => x.remove());
+  const vis = v => !off[v.type];
+  for (const l of G.liens) {
+    if (!vis(par[l.a]) || !vis(par[l.b])) continue;
+    const e = document.createElementNS(SVG, 'line'); e.dataset.a = l.a; e.dataset.b = l.b; e.classList.add('lien'); if (l.actif) e.classList.add('coule');
+    l.el = e; svg.append(e); }
+  for (const v of G.noeuds) {
+    if (!vis(v)) { v.el = null; continue; }
+    const b = el('button', 'noeud t-' + v.type); b.type = 'button'; b.setAttribute('aria-label', v.nom + ' (' + GENRE[v.type] + ')');
+    const r = rayon(v), c = T[v.type][0], rond = el('span', 'rond'); rond.style.cssText = `width:${r}px;height:${r}px;background:${c};animation-delay:-${(v.x % 50) / 10}s`;
+    b.append(rond, el('span', 'lab', v.nom)); v.el = b; v.rond = rond;
+    b.onmouseenter = () => { hov = v.id; eclairer(); }; b.onmouseleave = () => { hov = null; eclairer(); };
+    b.onfocus = b.onmouseenter; b.onblur = b.onmouseleave;
+    glisser(b, v); monde.append(b); }
+  placer(); eclairer();
+}
+function placer() {
+  for (const v of G.noeuds) if (v.el) { v.el.style.left = v.x + 'px'; v.el.style.top = v.y + 'px'; v.el.style.transform = `translate(-50%,-${rayon(v) / 2}px)`; }
+  for (const l of G.liens) if (l.el) { const A = par[l.a], B = par[l.b]; l.el.setAttribute('x1', A.x); l.el.setAttribute('y1', A.y); l.el.setAttribute('x2', B.x); l.el.setAttribute('y2', B.y); }
+}
+function eclairer() {
+  const foc = hov || sel, ql = q.trim().toLowerCase(), vs = foc ? voisins[foc] : null;
+  for (const v of G.noeuds) { if (!v.el) continue;
+    const trouve = ql && v.nom.toLowerCase().includes(ql), fort = v.id === foc || trouve, eteint = (vs && !vs.has(v.id)) || (ql && !trouve);
+    v.el.style.opacity = eteint ? .14 : 1; v.el.style.zIndex = fort ? 3 : 2; v.el.classList.toggle('fort', !!fort);
+    const c = T[v.type][0]; v.rond.style.boxShadow = `0 0 ${fort ? 26 : 12}px ${fort ? 6 : 1}px ${c}${fort ? 'aa' : '55'}`; }
+  for (const l of G.liens) { if (!l.el) continue;
+    const on = foc && (l.a === foc || l.b === foc);
+    l.el.setAttribute('stroke', l.actif ? '#f2b866' : on ? '#ffffff' : '#5b5f97'); l.el.setAttribute('stroke-width', l.actif || on ? 2 : 1);
+    l.el.setAttribute('opacity', foc && !on ? .1 : (l.actif || on ? .95 : .45)); }
+}
+/* Déplacer un nœud à la souris (le reste ne bouge pas) ; un clic sans déplacement ouvre sa fiche. */
+function glisser(b, v) {
+  b.onpointerdown = ev => { if (ev.button) return; ev.preventDefault(); b.setPointerCapture(ev.pointerId);
+    const x0 = ev.clientX, y0 = ev.clientY, vx = v.x, vy = v.y, s = echelle(); let bouge = false;
+    b.onpointermove = e => { const dx = (e.clientX - x0) / s, dy = (e.clientY - y0) / s; if (Math.abs(dx) + Math.abs(dy) > 3) bouge = true;
+      if (bouge) { v.x = vx + dx; v.y = vy + dy; placer(); } };
+    b.onpointerup = () => { b.onpointermove = b.onpointerup = null; if (!bouge) choisir(v.id === sel ? null : v.id); };
+  };
+  b.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choisir(v.id === sel ? null : v.id); } };
+}
+/* Vue : le monde (940×640) est mis à l'échelle de la scène ; zoom molette et boutons ; clic = zoom sur le nœud. */
+let base = 1, dx0 = 0, dy0 = 0, pan = [0, 0];
+function cadrer() { const s = $('scene'), w = s.clientWidth, h = s.clientHeight - 60; base = Math.min(w / W, h / H); dx0 = (w - W * base) / 2; dy0 = 50 + (h - H * base) / 2; vue(false); }
+function echelle() { return base * z * (sel ? 1.35 : 1); }
+function vue(anime = true) {
+  const m = $('monde'), s = echelle(), n = sel && par[sel]; m.classList.toggle('anime', anime && !CALME);
+  let tx = dx0 + pan[0], ty = dy0 + pan[1];
+  if (n) { const sc = $('scene'); tx = sc.clientWidth / 2 - n.x * s; ty = sc.clientHeight / 2 - n.y * s; }
+  else { tx += W * base / 2 * (1 - z); ty += H * base / 2 * (1 - z); }
+  m.style.transform = `translate(${tx}px,${ty}px) scale(${s})`;
+}
+$('plus').onclick = () => { z = Math.min(2.5, z + .2); vue(); };
+$('moins').onclick = () => { z = Math.max(.5, z - .2); vue(); };
+$('scene').addEventListener('wheel', e => { e.preventDefault(); z = Math.max(.5, Math.min(2.5, z * (e.deltaY < 0 ? 1.1 : .9))); vue(false); }, {passive: false});
+addEventListener('resize', cadrer);
+
+function choisir(id) { sel = id; vue(); eclairer(); fiche(); }
+function fiche() {
+  const f = $('fiche'); f.replaceChildren();
+  if (!sel || !par[sel]) {
+    f.append(el('span', 'sur', 'En ce moment'));
+    const m = G.moment, c = el('div', 'moment entre'), auj = el('span', 'sur', 'Aujourd’hui'); auj.style.marginTop = '6px';
+    if (m) c.append(el('b', '', m.titre), el('span', '', m.texte), el('small', '', (m.ia ? 'IA utilisée : ' + m.ia : '') + (m.de ? ' · ' + m.de : '')));
+    else c.append(el('b', '', 'Personne ne travaille'), el('span', '', 'Jarvis attend. Quand un agent travaille, son lien coule en pointillés.'));
+    f.append(c, auj);
+    const ch = el('div', 'chiffres'); for (const [n, t] of G.chiffres) { const d = el('div'); d.append(el('b', '', n), el('span', '', t)); ch.append(d); }
+    f.append(ch, el('p', 'note-bas', 'Les points gris sont les notes de ta mémoire Obsidian : le même graphe que dans Obsidian, mais relié à ce que font les agents.'));
+    return; }
+  const v = par[sel], d = el('div', 'entre'); d.style.cssText = 'display:flex;flex-direction:column;gap:10px';
+  const g = el('span', 'sur', GENRE[v.type]); g.style.color = T[v.type][0];
+  d.append(g, el('b', 'f-nom', v.nom), el('span', 'f-info', v.info));
+  if (v.ia) { const l = el('span', 'f-l'); l.append(el('b', '', 'IA : '), v.ia); d.append(l); }
+  if (v.type === 'agent' || v.type === 'jarvis') { const l = el('span', 'f-l'); l.append(el('b', '', 'Dernière tâche : '), v.derniere || 'rien aujourd’hui'); d.append(l); }
+  const vs = G.liens.filter(l => l.a === sel || l.b === sel).map(l => par[l.a === sel ? l.b : l.a]);
+  const s2 = el('span', 'sur', 'Relié à · ' + vs.length); s2.style.marginTop = '6px'; d.append(s2);
+  const box = el('div', 'voisins');
+  for (const w of vs) { const b = bouton(w.nom, '', () => choisir(w.id)); b.className = ''; b.style.setProperty('--c', T[w.type][0] + '88'); box.append(b); }
+  d.append(box);
+  if (v.lien_page) d.append(lien(v.type === 'note' ? 'Ouvrir dans Obsidian →' : v.type === 'skill' ? 'Voir les skills →' : 'Voir dans Mes IA →', v.lien_page, 'ouvrir'));
+  const r = bouton('← Tout le graphe', '', () => choisir(null)); r.className = 'retour'; d.append(r);
+  f.append(d);
+}
+function filtres() {
+  $('filtres').replaceChildren(...Object.keys(T).map(t => { const b = bouton(T[t][1], '', () => { off[t] = !off[t]; filtres(); dessiner(); });
+    b.className = 'filtre'; b.setAttribute('aria-pressed', !off[t]); b.style.setProperty('--c', T[t][0] + '88'); b.style.setProperty('--p', T[t][0]);
+    b.prepend(el('i')); return b; }));
+}
+$('q').oninput = e => { q = e.target.value; eclairer(); };
+addEventListener('keydown', e => { if (e.key === 'Escape' && sel && !document.querySelector('.ck')) choisir(null); });
+
+async function charger() {
+  try {
+    const d = await api('/pilote/graphe'); $('hors').classList.remove('vu');
+    if (G && d.noeuds.length === G.noeuds.length && d.noeuds.every(n => par[n.id])) {  // déjà dessiné : seulement l'état (travail en cours, chiffres)
+      const actifs = new Set(d.liens.filter(l => l.actif).map(l => l.a + '|' + l.b));
+      G.liens.forEach(l => { l.actif = actifs.has(l.a + '|' + l.b); if (l.el) l.el.classList.toggle('coule', l.actif); });
+      d.noeuds.forEach(n => Object.assign(par[n.id], {info: n.info, derniere: n.derniere, ia: n.ia}));
+      G.moment = d.moment; G.chiffres = d.chiffres; eclairer(); if (!sel) fiche(); return; }
+    G = d; par = {}; voisins = {};
+    G.noeuds.forEach(n => { par[n.id] = n; voisins[n.id] = new Set([n.id]); });
+    G.liens.forEach(l => { voisins[l.a].add(l.b); voisins[l.b].add(l.a); });
+    disposer(G.noeuds, G.liens); filtres(); dessiner(); cadrer(); fiche();
+    const h = location.hash.match(/n=([^&]+)/); if (h && par[decodeURIComponent(h[1])]) choisir(decodeURIComponent(h[1]));  // pilote.html#n=redaction
+  } catch (e) { $('hors').classList.add('vu'); }
+}
+charger(); setInterval(() => { if (!document.hidden) charger(); }, 15000);
+</script>
+</body>
+</html>

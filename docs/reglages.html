@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Réglages · Jarvis</title>
+<meta name="description" content="Services, Telegram, quotas, partage du projet, jeux, thème et arrêts.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8' fill='%23b5561f'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="lib/fonts/fonts.css">
+<link rel="stylesheet" href="app.css">
+<style>
+/* Mission 15 : Réglages devient une page (avant : une fenêtre du menu « Plus »). Même contenu, sur deux colonnes, sans défiler. */
+main.ecran{max-width:1100px;font-family:'Work Sans','Inter',sans-serif}
+main.ecran h1{font-size:40px;font-weight:600}
+.reglages-p .boite{display:block;columns:2 380px;column-gap:44px;max-height:none;margin-top:14px;padding:22px 28px}
+.reglages-p .boite>*{break-inside:avoid;margin-bottom:10px}
+.reglages-p .boite h3{break-after:avoid;margin-top:12px}
+.ou-est{column-span:all}.ou-est .ck-plan{margin-top:10px}.ou-est .ck-esp a span{color:#66695b}.reglages-p .boite h3:first-child{margin-top:0}
+</style>
+</head>
+<body data-ecran="reglages">
+<main class="ecran">
+  <h1>Réglages</h1>
+  <div class="fen reglages-p"><div class="boite" id="reglages"><p class="dim">Chargement…</p></div></div>
+</main>
+<script src="demo.js"></script>
+<script src="app.js"></script>
+<script>
+/* « Où est passé quoi ? » : dans Ctrl K pendant 2 semaines, puis seulement ici */
+ouvrirReglages().then(() => { const d = el('details', 'ou-est'), s = el('summary', '', 'Où est passé quoi ? (le plan du site et les raccourcis)'); d.append(s); planK(d, null); $('reglages').append(d); });
+</script>
+</body>
+</html>

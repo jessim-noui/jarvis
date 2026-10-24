@@ -1,0 +1,12 @@
+/* Polices locales (SIL Open Font License 1.1) : la page marche même sans internet */
+@font-face{font-family:'Inter';font-style:normal;font-display:swap;font-weight:100 900;src:url(inter-latin-wght-normal.woff2) format('woff2-variations'),url(inter-latin-wght-normal.woff2) format('woff2')}
+@font-face{font-family:'Space Grotesk';font-style:normal;font-display:swap;font-weight:300 700;src:url(space-grotesk-latin-wght-normal.woff2) format('woff2-variations'),url(space-grotesk-latin-wght-normal.woff2) format('woff2')}
+@font-face{font-family:'Fraunces';font-style:normal;font-display:swap;font-weight:100 900;src:url(fraunces-latin-opsz-normal.woff2) format('woff2-variations'),url(fraunces-latin-opsz-normal.woff2) format('woff2')}
+@font-face{font-family:'Fraunces';font-style:italic;font-display:swap;font-weight:100 900;src:url(fraunces-latin-opsz-italic.woff2) format('woff2-variations'),url(fraunces-latin-opsz-italic.woff2) format('woff2')}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-display:swap;font-weight:100 800;src:url(jetbrains-mono-latin-wght-normal.woff2) format('woff2-variations'),url(jetbrains-mono-latin-wght-normal.woff2) format('woff2')}
+@font-face{font-family:'Cinzel';font-style:normal;font-display:swap;font-weight:400 900;src:url(cinzel-latin-wght-normal.woff2) format('woff2-variations')}
+@font-face{font-family:'Cormorant Garamond';font-style:normal;font-display:swap;font-weight:300 700;src:url(cormorant-garamond-latin-wght-normal.woff2) format('woff2-variations')}
+@font-face{font-family:'Cormorant Garamond';font-style:italic;font-display:swap;font-weight:300 700;src:url(cormorant-garamond-latin-wght-italic.woff2) format('woff2-variations')}
+@font-face{font-family:'Work Sans';font-style:normal;font-display:swap;font-weight:400;src:url(work-sans-400.woff2) format('woff2')}
+@font-face{font-family:'Work Sans';font-style:normal;font-display:swap;font-weight:500;src:url(work-sans-500.woff2) format('woff2')}
+@font-face{font-family:'Work Sans';font-style:normal;font-display:swap;font-weight:600;src:url(work-sans-600.woff2) format('woff2')}
